@@ -3,579 +3,224 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acervo Bibliográfico - Consulta Inteligente</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <title>Biblioteca SBPE - Caixa Estante</title>
+  
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+
   <style>
-    :root {
-      --bg-color: #f8fafc;
-      --card-bg: #ffffff;
-      --text-main: #1e293b;
-      --text-muted: #64748b;
-      --primary: #2563eb;
-      --border: #e2e8f0;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-    }
-
-    body {
-      background-color: var(--bg-color);
-      color: var(--text-main);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem 1rem;
-    }
-
-    .container {
-      width: 100%;
-      max-width: 1100px;
-    }
-
-    header {
-      text-align: center;
-      margin-bottom: 2rem;
-    }
-
-    h1 {
-      font-size: 2.2rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 0.5rem;
-    }
-
-    h1 span {
-      color: var(--primary);
-    }
-
-    header p {
-      color: var(--text-muted);
-      font-size: 1rem;
-    }
-
-    .search-container {
-      position: relative;
-      max-width: 650px;
-      margin: 0 auto 1.5rem auto;
-    }
-
-    .search-input {
-      width: 100%;
-      padding: 1rem 1.5rem;
-      font-size: 1.1rem;
-      border: 2px solid var(--border);
-      border-radius: 50px;
-      outline: none;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-    }
-
-    .search-input:focus {
-      border-color: var(--primary);
-      box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.15);
-    }
-
-    .suggestions-box {
-      position: absolute;
-      top: 100%;
-      left: 0;
-      right: 0;
-      background: #ffffff;
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      margin-top: 8px;
-      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
-      z-index: 1000;
-      overflow: hidden;
-      display: none;
-    }
-
-    .suggestion-item {
-      padding: 0.75rem 1.25rem;
-      cursor: pointer;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      border-bottom: 1px solid #f1f5f9;
-      font-size: 0.95rem;
-    }
-
-    .suggestion-item:hover {
-      background-color: #eff6ff;
-      color: var(--primary);
-    }
-
-    .suggestion-type {
-      font-size: 0.75rem;
-      background: #f1f5f9;
-      color: #64748b;
-      padding: 0.2rem 0.5rem;
-      border-radius: 12px;
-      font-weight: 600;
-    }
-
-    .did-you-mean {
-      background-color: #f0fdf4;
-      border: 1px solid #bbf7d0;
-      color: #166534;
-      padding: 0.85rem 1.25rem;
-      border-radius: 12px;
-      margin: 0 auto 1.5rem auto;
-      max-width: 650px;
-      font-size: 0.95rem;
-      display: none;
-    }
-
-    .did-you-mean span {
-      font-weight: 700;
-      text-decoration: underline;
-      cursor: pointer;
-      color: #15803d;
-    }
-
-    .status-msg {
-      margin-bottom: 1.5rem;
-      color: var(--text-muted);
-      font-weight: 500;
-      font-size: 0.95rem;
-      text-align: center;
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
-      gap: 1.5rem;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: 12px;
-      padding: 1.25rem;
-      border-top: 5px solid #eab308;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-    }
-
-    .card-body {
-      display: flex;
-      gap: 1rem;
-      align-items: flex-start;
-      margin-bottom: 1rem;
-    }
-
-    .card-info {
-      flex: 1;
-    }
-
-    /* ESTILOS DA MOLDURA E EFEITO ÁGUA */
-    .cover-frame {
-      width: 90px;
-      height: 125px;
-      border: 2px dashed #cbd5e1;
-      border-radius: 8px;
-      background-color: #f8fafc;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      flex-shrink: 0;
-      position: relative;
-    }
-
-    .cover-frame img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      transition: transform 0.3s ease;
-      will-change: transform, filter;
-    }
-
-    /* Camada de brilho/reflexo da água */
-    .cover-frame::after {
-      content: '';
-      position: absolute;
-      top: -150%;
-      left: -150%;
-      width: 300%;
-      height: 300%;
-      background: linear-gradient(
-        135deg,
-        rgba(255, 255, 255, 0) 0%,
-        rgba(56, 189, 248, 0.2) 40%,
-        rgba(255, 255, 255, 0.75) 50%,
-        rgba(56, 189, 248, 0.2) 60%,
-        rgba(255, 255, 255, 0) 100%
-      );
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    /* Ativação das animações de 2 segundos no HOVER */
-    .card:hover .cover-frame img {
-      animation: aguaOndulacao 2s ease-in-out forwards;
-    }
-
-    .card:hover .cover-frame::after {
-      opacity: 1;
-      animation: brilhoAgua 2s ease-in-out forwards;
-    }
-
-    /* Keyframes: Animação de Ondulação da Imagem */
-    @keyframes aguaOndulacao {
-      0% {
-        transform: scale(1) skew(0deg, 0deg);
-        filter: brightness(1);
-      }
-      20% {
-        transform: scale(1.08, 0.94) skew(3deg, 1.5deg);
-        filter: brightness(1.1);
-      }
-      40% {
-        transform: scale(0.95, 1.06) skew(-3deg, -2deg);
-        filter: brightness(0.96);
-      }
-      65% {
-        transform: scale(1.03, 0.98) skew(1.5deg, 1deg);
-        filter: brightness(1.05);
-      }
-      85% {
-        transform: scale(0.99, 1.01) skew(-0.5deg, 0deg);
-        filter: brightness(1);
-      }
-      100% {
-        transform: scale(1) skew(0deg, 0deg);
-        filter: brightness(1);
-      }
-    }
-
-    /* Keyframes: Passagem do reflexo de onda */
-    @keyframes brilhoAgua {
-      0% {
-        transform: translate(-30%, -30%) rotate(0deg);
-        opacity: 0;
-      }
-      25% {
-        opacity: 1;
-      }
-      100% {
-        transform: translate(45%, 45%) rotate(25deg);
-        opacity: 0;
-      }
-    }
-
-    .cover-placeholder {
-      font-size: 1.8rem;
-      color: #94a3b8;
-    }
-
-    .hide-img {
-      display: none !important;
-    }
-
-    .hide-placeholder {
-      display: none !important;
-    }
-
-    .tag-codigo {
-      display: inline-block;
-      background: #f1f5f9;
-      color: #475569;
-      font-weight: 600;
-      font-size: 0.8rem;
-      padding: 0.25rem 0.6rem;
-      border-radius: 20px;
-      margin-bottom: 0.6rem;
-    }
-
-    .card-title {
-      font-size: 1.1rem;
-      font-weight: 700;
-      color: #0f172a;
-      margin-bottom: 0.3rem;
-      line-height: 1.3;
-    }
-
-    .card-author {
-      color: #64748b;
-      font-size: 0.9rem;
-      margin-bottom: 0.75rem;
-    }
-
-    .tag-assunto {
-      display: inline-block;
-      background: #e0f2fe;
-      color: #0369a1;
-      font-weight: 500;
-      font-size: 0.78rem;
-      padding: 0.25rem 0.6rem;
-      border-radius: 6px;
-    }
-
-    .card-footer {
-      border-top: 1px dashed var(--border);
-      padding-top: 0.75rem;
-      display: flex;
-      justify-content: space-between;
-      font-size: 0.85rem;
-      color: var(--text-muted);
-    }
+    .badge-verde { background-color: #10B981; color: white; }
+    .badge-rosa-claro { background-color: #F472B6; color: white; }
+    .badge-azul-celeste { background-color: #38BDF8; color: white; }
+    .badge-laranja { background-color: #FB923C; color: white; }
+    .badge-azul { background-color: #2563EB; color: white; }
+    .badge-vermelho { background-color: #EF4444; color: white; }
+    .badge-amarelo-fluorescente { background-color: #FACC15; color: black; }
+    .badge-preto { background-color: #1F2937; color: white; }
+    .badge-roxo { background-color: #8B5CF6; color: white; }
+    .badge-rosa-escuro { background-color: #DB2777; color: white; }
+    .badge-amarelo-medio { background-color: #EAB308; color: black; }
   </style>
 </head>
-<body>
+<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col justify-between">
 
-  <div class="container">
-    <header>
-      <h1>Acervo <span>Bibliográfico</span></h1>
-      <p>Pesquise por Título, Autor, Assunto ou Código de Localização</p>
-    </header>
+  <header class="bg-emerald-700 text-white shadow-md sticky top-0 z-30">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-book-bookmark text-2xl text-emerald-200"></i>
+        <div>
+          <h1 class="text-xl font-bold leading-tight">Biblioteca SBPE</h1>
+          <p class="text-xs text-emerald-100">Acervo Caixa Estante (Sistema SBPE / BPM-PE)</p>
+        </div>
+      </div>
 
-    <div class="search-container">
-      <input type="text" id="searchInput" class="search-input" placeholder="Carregando acervo..." disabled autocomplete="off">
-      <div id="suggestionsBox" class="suggestions-box"></div>
+      <div id="totalBadge" class="bg-emerald-800 text-emerald-100 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-500 hidden">
+        <i class="fa-solid fa-books mr-1"></i> <span id="totalLivros">0</span> obras no acervo SBPE
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-6 w-full flex-1">
+    <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 mb-6">
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <input type="text" id="searchInput" oninput="filtrarLivros()" 
+               placeholder="Pesquise por Título, Autor, Notação ou Cor de Lombada..." 
+               class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-sm">
+      </div>
+    </section>
+
+    <div id="loading" class="my-16 flex flex-col items-center justify-center gap-3">
+      <div class="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
+      <p class="text-slate-600 font-medium text-sm">A carregar acervo SBPE...</p>
     </div>
 
-    <div id="didYouMean" class="did-you-mean">
-      💡 Nenhum resultado exato encontrado. Você quis dizer: <span id="suggestionTerm"></span>?
+    <section id="gridLivros" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></section>
+
+    <div id="emptyMessage" class="hidden my-12 text-center text-slate-500 space-y-2">
+      <i class="fa-solid fa-folder-open text-4xl text-slate-300"></i>
+      <p class="font-medium">Nenhum livro encontrado no acervo SBPE.</p>
     </div>
+  </main>
 
-    <div id="statusMsg" class="status-msg">Carregando dados...</div>
+  <div id="modalDetalhes" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl relative max-h-[90vh] overflow-y-auto space-y-4">
+      <button onclick="fecharModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
+        <i class="fa-solid fa-xmark"></i>
+      </button>
 
-    <div id="resultsGrid" class="grid"></div>
+      <div class="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+        <img id="modalCapa" src="" class="w-36 h-52 object-cover rounded-xl shadow-md border border-slate-200" alt="Capa da obra">
+        <div class="space-y-2 flex-1 text-center sm:text-left">
+          <span id="modalNotacao" class="inline-block px-2.5 py-1 rounded bg-emerald-100 text-emerald-900 font-mono font-bold text-sm"></span>
+          <h2 id="modalTitulo" class="text-lg font-bold text-slate-900 leading-snug"></h2>
+          <p id="modalAutor" class="text-sm font-medium text-slate-600"></p>
+        </div>
+      </div>
+
+      <div class="border-t border-slate-100 pt-3 space-y-2 text-xs text-slate-700">
+        <div><strong class="text-slate-900">Assunto:</strong> <span id="modalAssunto"></span></div>
+        <div><strong class="text-slate-900">Cor de Lombada:</strong> <span id="modalCor"></span></div>
+        <div><strong class="text-slate-900">Exemplar:</strong> <span id="modalExemplar"></span></div>
+        <div><strong class="text-slate-900">Volume:</strong> <span id="modalVolume"></span></div>
+      </div>
+    </div>
   </div>
 
+  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-8">
+    <p>© Biblioteca SBPE — Sistema de Bibliotecas Públicas de Pernambuco</p>
+  </footer>
+
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbxkLzHZcm-9pAgHMLwAD4upBuun1CL5z34E4k_Ima75vYsRJ29naDhHGw4_Ai5NKouE/exec";
-    
-    let allBooks = [];
-    let searchTermsCatalog = [];
+    const SPREADSHEET_ID = '1qp9NMs2qTPEjd9ks5TjG3Gq27A6zWnqfhVZM0kJB6gw';
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
 
-    const searchInput = document.getElementById('searchInput');
-    const suggestionsBox = document.getElementById('suggestionsBox');
-    const didYouMean = document.getElementById('didYouMean');
-    const suggestionTerm = document.getElementById('suggestionTerm');
-    const statusMsg = document.getElementById('statusMsg');
-    const resultsGrid = document.getElementById('resultsGrid');
+    let acervoCompleto = [];
 
-    function normalizeText(str) {
-      return (str || '')
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase()
-        .trim();
-    }
+    window.addEventListener('DOMContentLoaded', carregarAcervo);
 
-    function levenshteinDistance(a, b) {
-      const matrix = [];
-      for (let i = 0; i <= b.length; i++) matrix[i] = [i];
-      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+    function carregarAcervo() {
+      Papa.parse(CSV_URL, {
+        download: true,
+        header: true,
+        skipEmptyLines: true,
+        complete: function(results) {
+          acervoCompleto = results.data.map(item => ({
+            notacao: item['Código / Notação'] || '',
+            exemplar: item['Exemplar'] || '',
+            volume: item['Volume'] || '',
+            titulo: item['Título da Obra'] || '',
+            autor: item['Autor / Organizador'] || '',
+            assunto: item['Assunto (Acervo)'] || '',
+            cor: item['Cor da Lombada'] || 'N/A',
+            capa: item['Capa'] || ''
+          }));
 
-      for (let i = 1; i <= b.length; i++) {
-        for (let j = 1; j <= a.length; j++) {
-          if (b.charAt(i - 1) === a.charAt(j - 1)) {
-            matrix[i][j] = matrix[i - 1][j - 1];
-          } else {
-            matrix[i][j] = Math.min(
-              matrix[i - 1][j - 1] + 1,
-              matrix[i][j - 1] + 1,
-              matrix[i - 1][j] + 1
-            );
-          }
+          document.getElementById('loading').classList.add('hidden');
+          document.getElementById('totalBadge').classList.remove('hidden');
+          document.getElementById('totalLivros').innerText = acervoCompleto.length;
+          document.getElementById('gridLivros').classList.remove('hidden');
+
+          renderizarLivros(acervoCompleto);
+        },
+        error: function() {
+          document.getElementById('loading').innerHTML = `
+            <div class="text-red-600 text-center p-4">
+              <i class="fa-solid fa-circle-exclamation text-3xl mb-2"></i>
+              <p class="font-bold">Erro ao carregar a planilha do SBPE.</p>
+            </div>`;
         }
-      }
-      return matrix[b.length][a.length];
-    }
-
-    async function loadData() {
-      try {
-        const response = await fetch(API_URL);
-        allBooks = await response.json();
-        
-        const termsMap = new Map();
-        allBooks.forEach(b => {
-          if (b.autor) termsMap.set(b.autor.trim(), 'Autor');
-          if (b.titulo) termsMap.set(b.titulo.trim(), 'Título');
-          if (b.assunto) termsMap.set(b.assunto.trim(), 'Assunto');
-        });
-        
-        searchTermsCatalog = Array.from(termsMap.entries()).map(([term, type]) => ({
-          term,
-          type,
-          normalized: normalizeText(term)
-        }));
-
-        searchInput.disabled = false;
-        searchInput.placeholder = "Digite para pesquisar...";
-        statusMsg.innerText = "Digite algum termo no campo acima para pesquisar no acervo.";
-      } catch (error) {
-        console.error(error);
-        statusMsg.innerText = "Erro ao carregar os dados do acervo. Tente recarregar a página.";
-      }
-    }
-
-    function handleSearch(customQuery = null) {
-      const queryRaw = customQuery !== null ? customQuery : searchInput.value;
-      const query = normalizeText(queryRaw);
-
-      suggestionsBox.style.display = 'none';
-      didYouMean.style.display = 'none';
-
-      if (query === "") {
-        statusMsg.innerText = "Digite algum termo no campo acima para pesquisar no acervo.";
-        resultsGrid.innerHTML = "";
-        return;
-      }
-
-      let filtered = allBooks.filter(book => {
-        return (
-          normalizeText(book.titulo).includes(query) ||
-          normalizeText(book.autor).includes(query) ||
-          normalizeText(book.assunto).includes(query) ||
-          normalizeText(book.codigo).includes(query)
-        );
-      });
-
-      if (filtered.length === 0 && query.length >= 3) {
-        let bestMatch = null;
-        let lowestDistance = Infinity;
-
-        searchTermsCatalog.forEach(item => {
-          const dist = levenshteinDistance(query, item.normalized);
-          if (dist < lowestDistance && dist <= 3) {
-            lowestDistance = dist;
-            bestMatch = item;
-          }
-        });
-
-        if (bestMatch) {
-          suggestionTerm.innerText = bestMatch.term;
-          didYouMean.style.display = 'block';
-          
-          suggestionTerm.onclick = () => {
-            searchInput.value = bestMatch.term;
-            handleSearch(bestMatch.term);
-          };
-
-          filtered = allBooks.filter(book => {
-            return (
-              normalizeText(book.titulo).includes(bestMatch.normalized) ||
-              normalizeText(book.autor).includes(bestMatch.normalized) ||
-              normalizeText(book.assunto).includes(bestMatch.normalized)
-            );
-          });
-        }
-      }
-
-      if (filtered.length > 0) {
-        statusMsg.innerText = `${filtered.length} item(ns) encontrado(s)`;
-      } else {
-        statusMsg.innerText = "Nenhum livro encontrado com esse termo.";
-      }
-
-      renderBooks(filtered);
-    }
-
-    function showAutocomplete() {
-      const query = normalizeText(searchInput.value);
-      
-      if (query.length < 2) {
-        suggestionsBox.style.display = 'none';
-        return;
-      }
-
-      const matches = searchTermsCatalog
-        .filter(item => item.normalized.includes(query))
-        .slice(0, 5);
-
-      if (matches.length === 0) {
-        suggestionsBox.style.display = 'none';
-        return;
-      }
-
-      suggestionsBox.innerHTML = matches.map(item => `
-        <div class="suggestion-item" data-value="${item.term}">
-          <span>${item.term}</span>
-          <span class="suggestion-type">${item.type}</span>
-        </div>
-      `).join('');
-
-      suggestionsBox.style.display = 'block';
-
-      document.querySelectorAll('.suggestion-item').forEach(el => {
-        el.addEventListener('click', () => {
-          const val = el.getAttribute('data-value');
-          searchInput.value = val;
-          handleSearch(val);
-        });
       });
     }
 
-    function renderBooks(books) {
-      resultsGrid.innerHTML = books.map(book => {
-        let rawUrl = (book.capaUrl || '').trim().replace(/\s+/g, '');
-        
-        if (rawUrl && !rawUrl.startsWith('http://') && !rawUrl.startsWith('https://')) {
-          rawUrl = 'https://' + rawUrl;
-        }
+    function renderizarLivros(lista) {
+      const grid = document.getElementById('gridLivros');
+      const emptyMsg = document.getElementById('emptyMessage');
+      grid.innerHTML = '';
 
-        const hasCover = rawUrl.length > 0;
+      if (lista.length === 0) {
+        emptyMsg.classList.remove('hidden');
+        return;
+      }
 
-        return `
-          <div class="card">
-            <div class="card-body">
-              <div class="card-info">
-                ${book.codigo ? `<span class="tag-codigo">📍 ${book.codigo}</span>` : ''}
-                <div class="card-title">${book.titulo || 'Sem título'}</div>
-                <div class="card-author">${book.autor || 'Autor não informado'}</div>
-                ${book.assunto ? `<span class="tag-assunto">📚 ${book.assunto}</span>` : ''}
-              </div>
-              <div class="cover-frame">
-                ${hasCover ? `
-                  <img src="${rawUrl}" 
-                       alt="Capa" 
-                       referrerpolicy="no-referrer"
-                       onerror="this.classList.add('hide-img'); this.nextElementSibling.classList.remove('hide-placeholder');">
-                  <span class="cover-placeholder hide-placeholder">📖</span>
-                ` : `
-                  <span class="cover-placeholder">📖</span>
-                `}
-              </div>
+      emptyMsg.classList.add('hidden');
+
+      lista.forEach(livro => {
+        const card = document.createElement('div');
+        card.className = "bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-slate-200 transition cursor-pointer flex flex-col justify-between group";
+        card.onclick = () => abrirModal(livro);
+
+        const capaSrc = livro.capa ? livro.capa : 'https://via.placeholder.com/200x300?text=Sem+Capa';
+
+        card.innerHTML = `
+          <div>
+            <div class="relative w-full h-48 bg-slate-100 overflow-hidden">
+              <img src="${capaSrc}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" alt="${livro.titulo}">
+              ${livro.cor && livro.cor !== 'N/A' ? `<span class="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded shadow ${getBadgeColorClass(livro.cor)}">${livro.cor}</span>` : ''}
             </div>
-            <div class="card-footer">
-              <span>Lombada:</span>
-              <strong>${book.corLombada || 'Não informada'}</strong>
+            <div class="p-3">
+              <span class="inline-block text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded mb-1">${livro.notacao || 'SBPE'}</span>
+              <h3 class="text-xs font-bold text-slate-900 line-clamp-2 leading-snug">${livro.titulo || 'Sem Título'}</h3>
+              <p class="text-[11px] text-slate-500 truncate mt-0.5">${livro.autor || 'Autor Desconhecido'}</p>
             </div>
           </div>
+          <div class="px-3 pb-3 pt-1 border-t border-slate-50 flex justify-between items-center text-[10px] text-slate-400">
+            <span>${livro.exemplar ? livro.exemplar : '1º Ex.'}</span>
+            <i class="fa-solid fa-chevron-right text-slate-300"></i>
+          </div>
         `;
-      }).join('');
+
+        grid.appendChild(card);
+      });
     }
 
-    searchInput.addEventListener('input', () => {
-      showAutocomplete();
-      handleSearch();
-    });
+    function filtrarLivros() {
+      const termo = document.getElementById('searchInput').value.toLowerCase().trim();
 
-    document.addEventListener('click', (e) => {
-      if (!searchInput.contains(e.target) && !suggestionsBox.contains(e.target)) {
-        suggestionsBox.style.display = 'none';
-      }
-    });
+      const filtrados = acervoCompleto.filter(item => {
+        return (item.titulo.toLowerCase().includes(termo) ||
+                item.autor.toLowerCase().includes(termo) ||
+                item.notacao.toLowerCase().includes(termo) ||
+                item.cor.toLowerCase().includes(termo) ||
+                item.assunto.toLowerCase().includes(termo));
+      });
 
-    loadData();
+      renderizarLivros(filtrados);
+    }
+
+    function abrirModal(livro) {
+      document.getElementById('modalCapa').src = livro.capa ? livro.capa : 'https://via.placeholder.com/200x300?text=Sem+Capa';
+      document.getElementById('modalNotacao').innerText = livro.notacao || 'Sem Notação';
+      document.getElementById('modalTitulo').innerText = livro.titulo || 'Sem Título';
+      document.getElementById('modalAutor').innerText = livro.autor || 'Autor não informado';
+      document.getElementById('modalAssunto').innerText = livro.assunto || 'N/A';
+      document.getElementById('modalCor').innerText = livro.cor || 'N/A';
+      document.getElementById('modalExemplar').innerText = livro.exemplar || '1º Exemplar (Padrão)';
+      document.getElementById('modalVolume').innerText = livro.volume || 'N/A';
+
+      document.getElementById('modalDetalhes').classList.remove('hidden');
+    }
+
+    function fecharModal() {
+      document.getElementById('modalDetalhes').classList.add('hidden');
+    }
+
+    function getBadgeColorClass(cor) {
+      const c = cor.toLowerCase().trim();
+      if (c.includes('verde')) return 'badge-verde';
+      if (c.includes('rosa claro')) return 'badge-rosa-claro';
+      if (c.includes('azul celeste')) return 'badge-azul-celeste';
+      if (c.includes('laranja')) return 'badge-laranja';
+      if (c.includes('azul')) return 'badge-azul';
+      if (c.includes('vermelho')) return 'badge-vermelho';
+      if (c.includes('amarelo fluorescente')) return 'badge-amarelo-fluorescente';
+      if (c.includes('preto')) return 'badge-preto';
+      if (c.includes('roxo')) return 'badge-roxo';
+      if (c.includes('rosa escuro')) return 'badge-rosa-escuro';
+      if (c.includes('amarelo')) return 'badge-amarelo-medio';
+      return 'bg-slate-700 text-white';
+    }
   </script>
 </body>
 </html>
