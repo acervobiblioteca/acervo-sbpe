@@ -10,6 +10,53 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 
   <style>
+    /* Efeito Água / Ondulação / Glassmorphism */
+    .glass-card {
+      background: rgba(255, 255, 255, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.6);
+      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .glass-card:hover {
+      transform: translateY(-6px) scale(1.02);
+      box-shadow: 0 20px 30px -10px rgba(16, 185, 129, 0.25), 0 0 20px 2px rgba(5, 150, 105, 0.2);
+    }
+
+    .water-shine {
+      position: relative;
+      overflow: hidden;
+    }
+    .water-shine::after {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -60%;
+      width: 200%;
+      height: 200%;
+      background: linear-gradient(
+        60deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 70%
+      );
+      transition: transform 0.8s ease;
+      transform: translateX(-100%);
+    }
+    .glass-card:hover .water-shine::after {
+      transform: translateX(100%);
+    }
+
+    .modal-enter {
+      animation: modalFade 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    @keyframes modalFade {
+      from { opacity: 0; transform: scale(0.92) translateY(10px); }
+      to { opacity: 1; transform: scale(1) translateY(0); }
+    }
+
+    /* Cores de Lombada SBPE */
     .badge-verde { background-color: #10B981; color: white; }
     .badge-rosa-claro { background-color: #F472B6; color: white; }
     .badge-azul-celeste { background-color: #38BDF8; color: white; }
@@ -23,78 +70,94 @@
     .badge-amarelo-medio { background-color: #EAB308; color: black; }
   </style>
 </head>
-<body class="bg-slate-50 min-h-screen text-slate-800 flex flex-col justify-between">
+<body class="bg-gradient-to-br from-slate-100 via-emerald-50/30 to-slate-200 min-h-screen text-slate-800 flex flex-col justify-between antialiased">
 
-  <header class="bg-emerald-700 text-white shadow-md sticky top-0 z-30">
+  <header class="bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-950 text-white shadow-lg sticky top-0 z-30 backdrop-blur-md bg-opacity-95 border-b border-emerald-700/40">
     <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
       <div class="flex items-center gap-3">
-        <i class="fa-solid fa-book-bookmark text-2xl text-emerald-200"></i>
+        <div class="w-10 h-10 rounded-xl bg-emerald-700/60 flex items-center justify-center shadow-inner border border-emerald-500/30">
+          <i class="fa-solid fa-book-bookmark text-xl text-emerald-300"></i>
+        </div>
         <div>
-          <h1 class="text-xl font-bold leading-tight">Biblioteca SBPE</h1>
-          <p class="text-xs text-emerald-100">Acervo Caixa Estante (Sistema SBPE / BPM-PE)</p>
+          <h1 class="text-xl font-extrabold leading-tight tracking-tight text-emerald-50">Biblioteca SBPE</h1>
+          <p class="text-xs text-emerald-200/90 font-medium">Acervo Caixa Estante (Sistema SBPE / BPM-PE)</p>
         </div>
       </div>
 
-      <div id="totalBadge" class="bg-emerald-800 text-emerald-100 text-xs font-semibold px-3 py-1.5 rounded-full border border-emerald-500 hidden">
-        <i class="fa-solid fa-books mr-1"></i> <span id="totalLivros">0</span> obras no acervo SBPE
+      <div id="totalBadge" class="bg-emerald-950/80 text-emerald-200 text-xs font-bold px-3.5 py-1.5 rounded-full border border-emerald-600/50 shadow-sm hidden flex items-center gap-2">
+        <i class="fa-solid fa-books text-emerald-400"></i>
+        <span><span id="totalLivros">0</span> obras no acervo SBPE</span>
       </div>
     </div>
   </header>
 
   <main class="max-w-6xl mx-auto px-4 py-6 w-full flex-1">
-    <section class="bg-white rounded-2xl p-4 shadow-sm border border-slate-200 mb-6">
+    <section class="bg-white/80 backdrop-blur-md rounded-2xl p-3 shadow-md border border-emerald-200/60 mb-6">
       <div class="relative">
-        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600/70 text-lg"></i>
         <input type="text" id="searchInput" oninput="filtrarLivros()" 
-               placeholder="Pesquise por Título, Autor, Notação ou Cor de Lombada..." 
-               class="w-full pl-11 pr-4 py-3 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-sm">
+               placeholder="Pesquise por Título, Autor, Notação, Cor de Lombada ou Palavras-chave..." 
+               class="w-full pl-11 pr-4 py-3 rounded-xl bg-white/90 border border-emerald-200/80 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent text-sm font-medium shadow-inner transition">
       </div>
     </section>
 
-    <div id="loading" class="my-16 flex flex-col items-center justify-center gap-3">
-      <div class="w-12 h-12 border-4 border-emerald-600 border-t-transparent rounded-full animate-spin"></div>
-      <p class="text-slate-600 font-medium text-sm">A carregar acervo SBPE...</p>
+    <div id="loading" class="my-20 flex flex-col items-center justify-center gap-4">
+      <div class="w-14 h-14 border-4 border-emerald-700 border-t-transparent rounded-full animate-spin shadow-md"></div>
+      <p class="text-emerald-900 font-semibold text-sm animate-pulse">A carregar acervo SBPE...</p>
     </div>
 
-    <section id="gridLivros" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4"></section>
+    <section id="gridLivros" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5"></section>
 
-    <div id="emptyMessage" class="hidden my-12 text-center text-slate-500 space-y-2">
-      <i class="fa-solid fa-folder-open text-4xl text-slate-300"></i>
-      <p class="font-medium">Nenhum livro encontrado no acervo SBPE.</p>
+    <div id="emptyMessage" class="hidden my-16 text-center text-slate-500 space-y-3">
+      <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">
+        <i class="fa-solid fa-folder-open"></i>
+      </div>
+      <p class="font-bold text-slate-700">Nenhum livro encontrado no SBPE.</p>
     </div>
   </main>
 
-  <div id="modalDetalhes" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl max-w-lg w-full p-6 shadow-xl relative max-h-[90vh] overflow-y-auto space-y-4">
-      <button onclick="fecharModal()" class="absolute top-4 right-4 w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-600 flex items-center justify-center transition">
-        <i class="fa-solid fa-xmark"></i>
+  <div id="modalDetalhes" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white/95 rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto modal-enter">
+      <button onclick="fecharModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-500 flex items-center justify-center transition shadow-sm">
+        <i class="fa-solid fa-xmark text-lg"></i>
       </button>
 
-      <div class="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
-        <img id="modalCapa" src="" class="w-36 h-52 object-cover rounded-xl shadow-md border border-slate-200" alt="Capa da obra">
-        <div class="space-y-2 flex-1 text-center sm:text-left">
-          <span id="modalNotacao" class="inline-block px-2.5 py-1 rounded bg-emerald-100 text-emerald-900 font-mono font-bold text-sm"></span>
-          <h2 id="modalTitulo" class="text-lg font-bold text-slate-900 leading-snug"></h2>
-          <p id="modalAutor" class="text-sm font-medium text-slate-600"></p>
+      <div class="flex flex-col sm:flex-row gap-5 items-center sm:items-start pt-2">
+        <div class="w-36 sm:w-40 flex-shrink-0 aspect-[2/3] bg-slate-100 rounded-xl overflow-hidden shadow-xl border border-slate-200/80 relative">
+          <img id="modalCapa" src="" class="w-full h-full object-cover" alt="Capa da obra">
+        </div>
+
+        <div class="space-y-3 flex-1 text-center sm:text-left">
+          <div class="flex flex-wrap gap-2 items-center justify-center sm:justify-start">
+            <span id="modalNotacao" class="inline-block px-3 py-1 rounded-lg bg-emerald-100 text-emerald-900 font-mono font-bold text-xs shadow-sm border border-emerald-200/60"></span>
+            <span id="modalCorBadge" class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm"></span>
+          </div>
+          <h2 id="modalTitulo" class="text-lg font-black text-slate-900 leading-snug"></h2>
+          <p id="modalAutor" class="text-sm font-semibold text-emerald-800/90"></p>
+
+          <div class="pt-1 flex flex-wrap gap-1.5 justify-center sm:justify-start">
+            <span id="modalExemplarTag" class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-[11px] font-bold border border-slate-200/60"></span>
+            <span id="modalVolumeTag" class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-[11px] font-bold border border-slate-200/60"></span>
+          </div>
         </div>
       </div>
 
-      <div class="border-t border-slate-100 pt-3 space-y-2 text-xs text-slate-700">
-        <div><strong class="text-slate-900">Assunto:</strong> <span id="modalAssunto"></span></div>
-        <div><strong class="text-slate-900">Cor de Lombada:</strong> <span id="modalCor"></span></div>
-        <div><strong class="text-slate-900">Exemplar:</strong> <span id="modalExemplar"></span></div>
-        <div><strong class="text-slate-900">Volume:</strong> <span id="modalVolume"></span></div>
+      <div class="border-t border-slate-100 pt-4 mt-4 space-y-2">
+        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
+          <i class="fa-solid fa-tags text-emerald-600"></i> Palavras-Chave de Autoridade (BN):
+        </h4>
+        <div id="modalBadgesAssunto" class="flex flex-wrap gap-1.5 pt-1"></div>
       </div>
     </div>
   </div>
 
-  <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-500 mt-8">
+  <footer class="bg-white/80 border-t border-slate-200/60 py-4 text-center text-xs text-slate-500 mt-8 backdrop-blur-sm">
     <p>© Biblioteca SBPE — Sistema de Bibliotecas Públicas de Pernambuco</p>
   </footer>
 
   <script>
     const SPREADSHEET_ID = '1qp9NMs2qTPEjd9ks5TjG3Gq27A6zWnqfhVZM0kJB6gw';
-    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv`;
 
     let acervoCompleto = [];
 
@@ -103,19 +166,27 @@
     function carregarAcervo() {
       Papa.parse(CSV_URL, {
         download: true,
-        header: true,
+        header: false,
         skipEmptyLines: true,
         complete: function(results) {
-          acervoCompleto = results.data.map(item => ({
-            notacao: item['Código / Notação'] || '',
-            exemplar: item['Exemplar'] || '',
-            volume: item['Volume'] || '',
-            titulo: item['Título da Obra'] || '',
-            autor: item['Autor / Organizador'] || '',
-            assunto: item['Assunto (Acervo)'] || '',
-            cor: item['Cor da Lombada'] || 'N/A',
-            capa: item['Capa'] || ''
-          }));
+          if (!results.data || results.data.length <= 1) {
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('emptyMessage').classList.remove('hidden');
+            return;
+          }
+
+          const linhas = results.data.slice(1);
+
+          acervoCompleto = linhas.map(row => ({
+            notacao: (row[0] || '').trim(),
+            exemplar: (row[1] || '').trim(),
+            volume: (row[2] || '').trim(),
+            titulo: (row[3] || '').trim(),
+            autor: (row[4] || '').trim(),
+            assunto: (row[5] || '').trim(),
+            cor: (row[6] || '').trim(),
+            capa: (row[7] || '').trim()
+          })).filter(livro => livro.titulo !== '' || livro.notacao !== '');
 
           document.getElementById('loading').classList.add('hidden');
           document.getElementById('totalBadge').classList.remove('hidden');
@@ -148,79 +219,27 @@
 
       lista.forEach(livro => {
         const card = document.createElement('div');
-        card.className = "bg-white rounded-xl overflow-hidden shadow-sm hover:shadow-md border border-slate-200 transition cursor-pointer flex flex-col justify-between group";
+        card.className = "glass-card rounded-2xl overflow-hidden shadow-sm cursor-pointer flex flex-col justify-between water-shine group";
         card.onclick = () => abrirModal(livro);
 
-        const capaSrc = livro.capa ? livro.capa : 'https://via.placeholder.com/200x300?text=Sem+Capa';
+        const capaSrc = livro.capa ? livro.capa : 'https://via.placeholder.com/300x450?text=Sem+Capa';
+        const listaAssuntos = livro.assunto.split(',').map(s => s.trim()).filter(s => s.length > 0);
+        const primeiroAssunto = listaAssuntos[0] || 'Acervo SBPE';
 
         card.innerHTML = `
           <div>
-            <div class="relative w-full h-48 bg-slate-100 overflow-hidden">
-              <img src="${capaSrc}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300" loading="lazy" alt="${livro.titulo}">
-              ${livro.cor && livro.cor !== 'N/A' ? `<span class="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded shadow ${getBadgeColorClass(livro.cor)}">${livro.cor}</span>` : ''}
+            <div class="relative w-full aspect-[2/3] bg-slate-100 overflow-hidden">
+              <img src="${capaSrc}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" alt="${livro.titulo}">
+              ${livro.cor && livro.cor !== 'N/A' ? `<span class="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-md shadow ${getBadgeColorClass(livro.cor)}">${livro.cor}</span>` : ''}
+              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
             </div>
-            <div class="p-3">
-              <span class="inline-block text-[10px] font-mono font-bold bg-emerald-50 text-emerald-700 px-1.5 py-0.5 rounded mb-1">${livro.notacao || 'SBPE'}</span>
-              <h3 class="text-xs font-bold text-slate-900 line-clamp-2 leading-snug">${livro.titulo || 'Sem Título'}</h3>
-              <p class="text-[11px] text-slate-500 truncate mt-0.5">${livro.autor || 'Autor Desconhecido'}</p>
+
+            <div class="p-3.5">
+              <span class="inline-block text-[10px] font-mono font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-md mb-1.5 shadow-sm border border-emerald-200/50">${livro.notacao || 'SBPE'}</span>
+              <h3 class="text-xs font-extrabold text-slate-900 line-clamp-2 leading-snug group-hover:text-emerald-800 transition">${livro.titulo || 'Sem Título'}</h3>
+              <p class="text-[11px] font-medium text-slate-500 truncate mt-1">${livro.autor || 'Autor Desconhecido'}</p>
             </div>
           </div>
-          <div class="px-3 pb-3 pt-1 border-t border-slate-50 flex justify-between items-center text-[10px] text-slate-400">
-            <span>${livro.exemplar ? livro.exemplar : '1º Ex.'}</span>
-            <i class="fa-solid fa-chevron-right text-slate-300"></i>
-          </div>
-        `;
 
-        grid.appendChild(card);
-      });
-    }
-
-    function filtrarLivros() {
-      const termo = document.getElementById('searchInput').value.toLowerCase().trim();
-
-      const filtrados = acervoCompleto.filter(item => {
-        return (item.titulo.toLowerCase().includes(termo) ||
-                item.autor.toLowerCase().includes(termo) ||
-                item.notacao.toLowerCase().includes(termo) ||
-                item.cor.toLowerCase().includes(termo) ||
-                item.assunto.toLowerCase().includes(termo));
-      });
-
-      renderizarLivros(filtrados);
-    }
-
-    function abrirModal(livro) {
-      document.getElementById('modalCapa').src = livro.capa ? livro.capa : 'https://via.placeholder.com/200x300?text=Sem+Capa';
-      document.getElementById('modalNotacao').innerText = livro.notacao || 'Sem Notação';
-      document.getElementById('modalTitulo').innerText = livro.titulo || 'Sem Título';
-      document.getElementById('modalAutor').innerText = livro.autor || 'Autor não informado';
-      document.getElementById('modalAssunto').innerText = livro.assunto || 'N/A';
-      document.getElementById('modalCor').innerText = livro.cor || 'N/A';
-      document.getElementById('modalExemplar').innerText = livro.exemplar || '1º Exemplar (Padrão)';
-      document.getElementById('modalVolume').innerText = livro.volume || 'N/A';
-
-      document.getElementById('modalDetalhes').classList.remove('hidden');
-    }
-
-    function fecharModal() {
-      document.getElementById('modalDetalhes').classList.add('hidden');
-    }
-
-    function getBadgeColorClass(cor) {
-      const c = cor.toLowerCase().trim();
-      if (c.includes('verde')) return 'badge-verde';
-      if (c.includes('rosa claro')) return 'badge-rosa-claro';
-      if (c.includes('azul celeste')) return 'badge-azul-celeste';
-      if (c.includes('laranja')) return 'badge-laranja';
-      if (c.includes('azul')) return 'badge-azul';
-      if (c.includes('vermelho')) return 'badge-vermelho';
-      if (c.includes('amarelo fluorescente')) return 'badge-amarelo-fluorescente';
-      if (c.includes('preto')) return 'badge-preto';
-      if (c.includes('roxo')) return 'badge-roxo';
-      if (c.includes('rosa escuro')) return 'badge-rosa-escuro';
-      if (c.includes('amarelo')) return 'badge-amarelo-medio';
-      return 'bg-slate-700 text-white';
-    }
-  </script>
-</body>
-</html>
+          <div class="px-3.5 pb-3 pt-2 border-t border-slate-100/80 flex justify-between items-center text-[10px] text-slate-400">
+            <span class="font-bold text-emerald-700/80
