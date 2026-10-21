@@ -28,6 +28,33 @@
       .no-print { display: none !important; }
     }
 
+    /* Efeito Ripple (Água) ao clicar */
+    .ripple {
+      position: relative;
+      overflow: hidden;
+    }
+    .ripple::after {
+      content: "";
+      display: block;
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      background-image: radial-gradient(circle, rgba(255, 255, 255, 0.4) 10%, transparent 10.01%);
+      background-repeat: no-repeat;
+      background-position: 50%;
+      transform: scale(10, 10);
+      opacity: 0;
+      transition: transform .5s, opacity 1s;
+    }
+    .ripple:active::after {
+      transform: scale(0, 0);
+      opacity: .3;
+      transition: 0s;
+    }
+
     .etiqueta-card {
       width: 6.8cm;
       height: 3.8cm;
@@ -116,7 +143,7 @@
       </div>
       
       <div class="flex items-center gap-2">
-        <button onclick="abrirModalEtiquetas()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3.5 py-2 rounded-lg transition shadow flex items-center gap-1.5">
+        <button onclick="abrirModalEtiquetas()" class="ripple bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3.5 py-2 rounded-lg transition shadow flex items-center gap-1.5">
           <i class="fa-solid fa-print"></i>
           <span>Imprimir Etiquetas</span>
         </button>
@@ -126,15 +153,79 @@
   </nav>
 
   <main class="max-w-6xl mx-auto p-4 space-y-4 no-print">
-    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
-      <input type="text" id="inputPesquisa" onkeyup="filtrarObras()" placeholder="Pesquise por Título, Autor, Notação ou Cor de Lombada..." class="w-full px-4 py-2.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+    <!-- Barra de Pesquisa com Botão e Sugestão -->
+    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200 space-y-2">
+      <div class="flex gap-2">
+        <div class="relative flex-1">
+          <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3 text-slate-400 text-xs"></i>
+          <input type="text" id="inputPesquisa" onkeydown="if(event.key==='Enter') executarPesquisaManualmente()" placeholder="Pesquise por Título, Autor, Assunto (Gênero), Notação ou Cor de Lombada..." class="w-full pl-9 pr-4 py-2 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-600">
+        </div>
+        <button onclick="executarPesquisaManualmente()" class="ripple bg-emerald-700 hover:bg-emerald-800 text-white px-4 py-2 rounded-lg text-xs font-bold transition shadow flex items-center gap-1.5">
+          <i class="fa-solid fa-search"></i>
+          <span>Pesquisar</span>
+        </button>
+      </div>
+      
+      <!-- Banner de Sugestão "Você quis dizer?" -->
+      <div id="bannerSugestao" class="hidden text-xs bg-amber-50 text-amber-800 p-2 rounded-lg border border-amber-200 flex items-center gap-2">
+        <i class="fa-solid fa-lightbulb text-amber-500"></i>
+        <span>Você quis dizer: <strong id="termoSugestao" class="underline cursor-pointer hover:text-amber-900" onclick="aplicarSugestao()"></strong>?</span>
+      </div>
     </div>
 
+    <!-- Grid de Obras -->
     <div id="gridObras" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
       <p class="col-span-full text-center text-slate-400 py-10 text-xs">Carregando acervo SBPE...</p>
     </div>
   </main>
 
+  <!-- MODAL: FICHA DETALHADA DA OBRA -->
+  <div id="modalFicha" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-100 transform transition-all">
+      <div class="bg-emerald-800 text-white p-4 flex justify-between items-center">
+        <h3 class="font-bold text-sm flex items-center gap-2">
+          <i class="fa-solid fa-book-open"></i>
+          <span>Ficha da Obra</span>
+        </h3>
+        <button onclick="fecharFicha()" class="text-emerald-200 hover:text-white font-bold text-lg">✕</button>
+      </div>
+
+      <div class="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
+        <div class="flex flex-col sm:flex-row gap-4 items-center sm:items-start">
+          <div class="w-36 h-48 bg-slate-100 rounded-lg overflow-hidden shadow-md flex-shrink-0 relative group">
+            <img id="fichaCapa" src="" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+            <span id="fichaCor" class="absolute top-2 right-2 tag-cor-lombada"></span>
+          </div>
+          <div class="space-y-2 text-center sm:text-left flex-1">
+            <span id="fichaNotacao" class="inline-block bg-slate-100 text-slate-800 font-mono text-xs font-bold px-2.5 py-1 rounded border border-slate-200"></span>
+            <h2 id="fichaTitulo" class="font-bold text-slate-900 text-base leading-tight"></h2>
+            <p id="fichaAutor" class="text-xs text-slate-600 font-medium"></p>
+            <div class="flex gap-2 text-[11px] text-slate-500 font-semibold pt-1">
+              <span id="fichaExemplar"></span>
+              <span id="fichaVolume"></span>
+            </div>
+          </div>
+        </div>
+
+        <hr class="border-slate-200">
+
+        <!-- Assuntos / Correlações (Coluna F) -->
+        <div class="space-y-2">
+          <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wider flex items-center gap-1.5">
+            <i class="fa-solid fa-tags text-emerald-600"></i>
+            <span>Assuntos (Temas Correlacionados):</span>
+          </h4>
+          <div id="fichaAssuntos" class="flex flex-wrap gap-1.5"></div>
+        </div>
+      </div>
+
+      <div class="bg-slate-50 p-3 border-t border-slate-100 text-right">
+        <button onclick="fecharFicha()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold hover:bg-slate-300 transition">Fechar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: IMPRESSÃO DE ETIQUETAS -->
   <div id="modalEtiquetas" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
     <div class="bg-white rounded-2xl max-w-xl w-full p-5 shadow-2xl space-y-4 border border-slate-100">
       <div class="flex justify-between items-center border-b pb-3">
@@ -158,7 +249,7 @@
 
       <div class="flex justify-end gap-2 pt-2">
         <button onclick="fecharModalEtiquetas()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold">Cancelar</button>
-        <button onclick="window.print()" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold shadow flex items-center gap-1.5">
+        <button onclick="window.print()" class="ripple px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold shadow flex items-center gap-1.5">
           <i class="fa-solid fa-print"></i>
           <span>Imprimir Agora</span>
         </button>
@@ -171,6 +262,7 @@
   <script>
     const SPREADSHEET_ID = '1qp9NMs2qTPEjd9ks5TjG3Gq27A6zWnqfhVZM0kJB6gw';
     let todosOsLivros = [];
+    let palavraSugestaoAtual = '';
 
     window.onload = function() { carregarDadosPlanilha(); };
 
@@ -188,9 +280,10 @@
           return;
         }
 
-        todosOsLivros = json.table.rows.map(row => {
+        todosOsLivros = json.table.rows.map((row, index) => {
           const c = row.c || [];
           return {
+            id: index,
             notacao: getCellVal(c, 0),
             exemplar: getCellVal(c, 1),
             volume: getCellVal(c, 2),
@@ -217,6 +310,158 @@
       const val = cells[index].f !== undefined && cells[index].f !== null ? cells[index].f : cells[index].v;
       if (val === null || val === undefined) return '';
       return String(val).trim();
+    }
+
+    function renderizarGrid(livros) {
+      const grid = document.getElementById('gridObras');
+      if (livros.length === 0) {
+        grid.innerHTML = `<p class="col-span-full text-center text-slate-400 py-10 text-xs">Nenhuma obra encontrada.</p>`;
+        return;
+      }
+
+      grid.innerHTML = livros.map(livro => `
+        <div onclick="abrirFicha(${livro.id})" class="ripple group bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer">
+          <div class="h-48 bg-slate-100 overflow-hidden relative">
+            <img src="${livro.capa || 'https://via.placeholder.com/150x200?text=Sem+Capa'}" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 ease-out">
+            <span class="absolute top-2 right-2 tag-cor-lombada cor-${obterClasseCor(livro.corLombada)}">${livro.corLombada}</span>
+          </div>
+          <div class="p-3 space-y-1">
+            <span class="inline-block bg-slate-100 text-slate-800 text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-slate-200">${livro.notacao}</span>
+            <h4 class="font-bold text-xs text-slate-900 truncate group-hover:text-emerald-700 transition-colors">${livro.titulo}</h4>
+            <p class="text-[10px] text-slate-500 truncate">${livro.autor}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function abrirFicha(id) {
+      const livro = todosOsLivros.find(l => l.id === id);
+      if (!livro) return;
+
+      document.getElementById('fichaCapa').src = livro.capa || 'https://via.placeholder.com/150x200?text=Sem+Capa';
+      document.getElementById('fichaTitulo').innerText = livro.titulo;
+      document.getElementById('fichaAutor').innerText = livro.autor || 'Autor não informado';
+      document.getElementById('fichaNotacao').innerText = livro.notacao || 'S/N';
+      document.getElementById('fichaExemplar').innerText = livro.exemplar ? `Exemplar: ${livro.exemplar}` : '';
+      document.getElementById('fichaVolume').innerText = livro.volume ? `Volume: ${livro.volume}` : '';
+      
+      const badgeCor = document.getElementById('fichaCor');
+      badgeCor.innerText = livro.corLombada;
+      badgeCor.className = `absolute top-2 right-2 tag-cor-lombada cor-${obterClasseCor(livro.corLombada)}`;
+
+      const divAssuntos = document.getElementById('fichaAssuntos');
+      if (livro.assunto) {
+        const assuntos = livro.assunto.split(/[,;-]/).map(a => a.trim()).filter(a => a !== '');
+        divAssuntos.innerHTML = assuntos.map(a => `
+          <span onclick="pesquisarPorAssunto('${a}')" class="ripple bg-emerald-50 text-emerald-800 text-[11px] font-bold px-2.5 py-1 rounded-lg border border-emerald-200 hover:bg-emerald-200 cursor-pointer transition">
+            # ${a}
+          </span>
+        `).join('');
+      } else {
+        divAssuntos.innerHTML = `<span class="text-slate-400 text-xs italic">Nenhum assunto especificado.</span>`;
+      }
+
+      document.getElementById('modalFicha').classList.remove('hidden');
+    }
+
+    function fecharFicha() {
+      document.getElementById('modalFicha').classList.add('hidden');
+    }
+
+    function pesquisarPorAssunto(assunto) {
+      fecharFicha();
+      document.getElementById('inputPesquisa').value = assunto;
+      executarPesquisaManualmente();
+    }
+
+    function executarPesquisaManualmente() {
+      filtrarObras();
+    }
+
+    function filtrarObras() {
+      const termo = document.getElementById('inputPesquisa').value.toLowerCase().trim();
+      const banner = document.getElementById('bannerSugestao');
+
+      if (!termo) {
+        banner.classList.add('hidden');
+        renderizarGrid(todosOsLivros);
+        return;
+      }
+
+      const filtrados = todosOsLivros.filter(l => 
+        l.titulo.toLowerCase().includes(termo) ||
+        l.autor.toLowerCase().includes(termo) ||
+        l.notacao.toLowerCase().includes(termo) ||
+        l.corLombada.toLowerCase().includes(termo) ||
+        l.assunto.toLowerCase().includes(termo)
+      );
+
+      if (filtrados.length === 0 && termo.length >= 3) {
+        const sugestao = buscarSugestaoAproximada(termo);
+        if (sugestao) {
+          palavraSugestaoAtual = sugestao;
+          document.getElementById('termoSugestao').innerText = sugestao;
+          banner.classList.remove('hidden');
+        } else {
+          banner.classList.add('hidden');
+        }
+      } else {
+        banner.classList.add('hidden');
+      }
+
+      renderizarGrid(filtrados);
+    }
+
+    function aplicarSugestao() {
+      if (palavraSugestaoAtual) {
+        document.getElementById('inputPesquisa').value = palavraSugestaoAtual;
+        filtrarObras();
+      }
+    }
+
+    function buscarSugestaoAproximada(termo) {
+      let vocabulario = new Set();
+      todosOsLivros.forEach(l => {
+        l.titulo.split(' ').forEach(w => vocabulario.add(w.toLowerCase()));
+        l.autor.split(' ').forEach(w => vocabulario.add(w.toLowerCase()));
+        l.assunto.split(/[,;\s]+/).forEach(w => vocabulario.add(w.toLowerCase()));
+      });
+
+      let melhorPalavra = '';
+      let menorDistancia = 999;
+
+      vocabulario.forEach(palavra => {
+        if (palavra.length >= 3) {
+          const dist = calcularLevenshtein(termo, palavra);
+          if (dist < menorDistancia && dist <= 2) {
+            menorDistancia = dist;
+            melhorPalavra = palavra;
+          }
+        }
+      });
+
+      return melhorPalavra;
+    }
+
+    function calcularLevenshtein(a, b) {
+      const matrix = [];
+      for (let i = 0; i <= b.length; i++) matrix[i] = [i];
+      for (let j = 0; j <= a.length; j++) matrix[0][j] = j;
+
+      for (let i = 1; i <= b.length; i++) {
+        for (let j = 1; j <= a.length; j++) {
+          if (b.charAt(i - 1) === a.charAt(j - 1)) {
+            matrix[i][j] = matrix[i - 1][j - 1];
+          } else {
+            matrix[i][j] = Math.min(
+              matrix[i - 1][j - 1] + 1,
+              matrix[i][j - 1] + 1,
+              matrix[i - 1][j] + 1
+            );
+          }
+        }
+      }
+      return matrix[b.length][a.length];
     }
 
     function normalizarDataParaISO(dataStr) {
@@ -253,27 +498,6 @@
       }
 
       return '';
-    }
-
-    function renderizarGrid(livros) {
-      const grid = document.getElementById('gridObras');
-      if (livros.length === 0) {
-        grid.innerHTML = `<p class="col-span-full text-center text-slate-400 py-10 text-xs">Nenhuma obra encontrada.</p>`;
-        return;
-      }
-      grid.innerHTML = livros.map(livro => `
-        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition">
-          <div class="h-44 bg-slate-100 overflow-hidden relative">
-            <img src="${livro.capa || 'https://via.placeholder.com/150x200?text=Sem+Capa'}" class="w-full h-full object-cover">
-            <span class="absolute top-2 right-2 tag-cor-lombada cor-${obterClasseCor(livro.corLombada)}">${livro.corLombada}</span>
-          </div>
-          <div class="p-3 space-y-1">
-            <span class="inline-block bg-slate-100 text-slate-800 text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-slate-200">${livro.notacao}</span>
-            <h4 class="font-bold text-xs text-slate-900 truncate">${livro.titulo}</h4>
-            <p class="text-[10px] text-slate-500 truncate">${livro.autor}</p>
-          </div>
-        </div>
-      `).join('');
     }
 
     function gerarPreviewEtiquetas() {
@@ -342,17 +566,6 @@
       if (c.includes('ROXO')) return 'ROXO';
       if (c.includes('PRETO') || c.includes('CINZA')) return 'CINZA';
       return 'PADRAO';
-    }
-
-    function filtrarObras() {
-      const termo = document.getElementById('inputPesquisa').value.toLowerCase();
-      const filtrados = todosOsLivros.filter(l => 
-        l.titulo.toLowerCase().includes(termo) ||
-        l.autor.toLowerCase().includes(termo) ||
-        l.notacao.toLowerCase().includes(termo) ||
-        l.corLombada.toLowerCase().includes(termo)
-      );
-      renderizarGrid(filtrados);
     }
 
     function abrirModalEtiquetas() { document.getElementById('modalEtiquetas').classList.remove('hidden'); }
