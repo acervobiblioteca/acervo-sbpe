@@ -202,13 +202,51 @@
         gerarPreviewEtiquetas();
       } catch (err) {
         console.error("Erro ao carregar:", err);
-        document.getElementById('gridObras').innerHTML = `<p class="col-span-full text-center text-red-500 font-bold py-10 text-xs">Erro de conexão. Certifique-se de que a planilha foi "Publicada na web" (Arquivo > Compartilhar > Publicar na web).</p>`;
+        document.getElementById('gridObras').innerHTML = `<p class="col-span-full text-center text-red-500 font-bold py-10 text-xs">Erro de conexão com a planilha.</p>`;
       }
     }
 
     function getCellVal(cells, index) {
-      if (!cells || !cells[index] || cells[index].v === null || cells[index].v === undefined) return '';
-      return String(cells[index].v).trim();
+      if (!cells || !cells[index]) return '';
+      const val = cells[index].f !== undefined && cells[index].f !== null ? cells[index].f : cells[index].v;
+      if (val === null || val === undefined) return '';
+      return String(val).trim();
+    }
+
+    function normalizarDataParaISO(dataStr) {
+      if (!dataStr) return '';
+      let s = String(dataStr).trim();
+
+      if (s.includes('Date(')) {
+        const m = s.match(/\d+/g);
+        if (m && m.length >= 3) {
+          const ano = m[0];
+          const mes = String(parseInt(m[1], 10) + 1).padStart(2, '0');
+          const dia = String(m[2]).padStart(2, '0');
+          return `${ano}-${mes}-${dia}`;
+        }
+      }
+
+      s = s.split(' ')[0].split('T')[0];
+
+      if (s.includes('/')) {
+        const partes = s.split('/');
+        if (partes.length === 3) {
+          const dia = partes[0].padStart(2, '0');
+          const mes = partes[1].padStart(2, '0');
+          const ano = partes[2];
+          return `${ano}-${mes}-${dia}`;
+        }
+      }
+
+      if (s.includes('-')) {
+        const partes = s.split('-');
+        if (partes.length === 3 && partes[0].length === 4) {
+          return s;
+        }
+      }
+
+      return '';
     }
 
     function renderizarGrid(livros) {
@@ -239,10 +277,10 @@
 
       const filtrados = todosOsLivros.filter(l => {
         if (!dInicio && !dFim) return true;
-        if (!l.dataRegistro) return true;
-        const dataLivro = l.dataRegistro.split(' ')[0];
-        if (dInicio && dataLivro < dInicio) return false;
-        if (dFim && dataLivro > dFim) return false;
+        const dataISO = normalizarDataParaISO(l.dataRegistro);
+        if (!dataISO) return true;
+        if (dInicio && dataISO < dInicio) return false;
+        if (dFim && dataISO > dFim) return false;
         return true;
       });
 
