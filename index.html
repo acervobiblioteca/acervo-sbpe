@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Biblioteca SBPE - Acervo e Etiquetas</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   
   <style>
@@ -170,47 +169,46 @@
     window.onload = function() { carregarDadosPlanilha(); };
 
     async function carregarDadosPlanilha() {
-      const urlPrimary = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&_ts=${Date.now()}`;
-      const urlSecondary = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&_ts=${Date.now()}`;
+      const url = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json&_ts=${Date.now()}`;
 
       try {
-        let response = await fetch(urlPrimary);
-        if (!response.ok) {
-          response = await fetch(urlSecondary);
+        const response = await fetch(url);
+        const text = await response.text();
+        const jsonString = text.substring(text.indexOf('{'), text.lastIndexOf('}') + 1);
+        const json = JSON.parse(jsonString);
+
+        if (!json.table || !json.table.rows) {
+          document.getElementById('gridObras').innerHTML = `<p class="col-span-full text-center text-slate-400 py-10 text-xs">Nenhuma obra cadastrada.</p>`;
+          return;
         }
-        const csvText = await response.text();
 
-        Papa.parse(csvText, {
-          header: false,
-          skipEmptyLines: 'greedy',
-          complete: function(results) {
-            if (!results.data || results.data.length <= 1) {
-              document.getElementById('gridObras').innerHTML = `<p class="col-span-full text-center text-slate-400 py-10 text-xs">Nenhuma obra cadastrada até o momento.</p>`;
-              return;
-            }
+        todosOsLivros = json.table.rows.map(row => {
+          const c = row.c || [];
+          return {
+            notacao: getCellVal(c, 0),
+            exemplar: getCellVal(c, 1),
+            volume: getCellVal(c, 2),
+            titulo: getCellVal(c, 3),
+            autor: getCellVal(c, 4),
+            assunto: getCellVal(c, 5),
+            corLombada: getCellVal(c, 6).toUpperCase() || 'VERDE',
+            capa: getCellVal(c, 7),
+            dataRegistro: getCellVal(c, 8)
+          };
+        }).filter(l => l.titulo !== '' || l.notacao !== '');
 
-            const rows = results.data.slice(1);
-            todosOsLivros = rows.map(row => ({
-              notacao: row[0] ? String(row[0]).trim() : '',
-              exemplar: row[1] ? String(row[1]).trim() : '',
-              volume: row[2] ? String(row[2]).trim() : '',
-              titulo: row[3] ? String(row[3]).trim() : '',
-              autor: row[4] ? String(row[4]).trim() : '',
-              assunto: row[5] ? String(row[5]).trim() : '',
-              corLombada: row[6] ? String(row[6]).trim().toUpperCase() : 'VERDE',
-              capa: row[7] ? String(row[7]).trim() : '',
-              dataRegistro: row[8] ? String(row[8]).trim() : ''
-            })).filter(livro => livro.titulo !== '' || livro.notacao !== '');
-
-            document.getElementById('contadorObras').innerText = `${todosOsLivros.length} obras`;
-            renderizarGrid(todosOsLivros);
-            gerarPreviewEtiquetas();
-          }
-        });
+        document.getElementById('contadorObras').innerText = `${todosOsLivros.length} obras`;
+        renderizarGrid(todosOsLivros);
+        gerarPreviewEtiquetas();
       } catch (err) {
-        console.error("Erro ao carregar planilha SBPE:", err);
-        document.getElementById('gridObras').innerHTML = `<p class="col-span-full text-center text-red-500 font-bold py-10 text-xs">Erro ao conectar à planilha. Certifique-se de que a planilha está com acesso público no Google Drive.</p>`;
+        console.error("Erro ao carregar:", err);
+        document.getElementById('gridObras').innerHTML = `<p class="col-span-full text-center text-red-500 font-bold py-10 text-xs">Erro de conexão. Certifique-se de que a planilha foi "Publicada na web" (Arquivo > Compartilhar > Publicar na web).</p>`;
       }
+    }
+
+    function getCellVal(cells, index) {
+      if (!cells || !cells[index] || cells[index].v === null || cells[index].v === undefined) return '';
+      return String(cells[index].v).trim();
     }
 
     function renderizarGrid(livros) {
