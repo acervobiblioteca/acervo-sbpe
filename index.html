@@ -165,35 +165,52 @@
 
   <script>
     const SPREADSHEET_ID = '1qp9NMs2qTPEjd9ks5TjG3Gq27A6zWnqfhVZM0kJB6gw';
-    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&_ts=${Date.now()}`;
     let todosOsLivros = [];
 
     window.onload = function() { carregarDadosPlanilha(); };
 
-    function carregarDadosPlanilha() {
-      Papa.parse(CSV_URL, {
-        download: true,
-        header: false,
-        skipEmptyLines: true,
-        complete: function(results) {
-          const rows = results.data.slice(1);
-          todosOsLivros = rows.map(row => ({
-            notacao: row[0] ? row[0].trim() : '',
-            exemplar: row[1] ? row[1].trim() : '',
-            volume: row[2] ? row[2].trim() : '',
-            titulo: row[3] ? row[3].trim() : '',
-            autor: row[4] ? row[4].trim() : '',
-            assunto: row[5] ? row[5].trim() : '',
-            corLombada: row[6] ? row[6].trim().toUpperCase() : 'VERDE',
-            capa: row[7] ? row[7].trim() : '',
-            dataRegistro: row[8] ? row[8].trim() : ''
-          })).filter(livro => livro.titulo !== '' || livro.notacao !== '');
+    async function carregarDadosPlanilha() {
+      const urlPrimary = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/export?format=csv&_ts=${Date.now()}`;
+      const urlSecondary = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&_ts=${Date.now()}`;
 
-          document.getElementById('contadorObras').innerText = `${todosOsLivros.length} obras`;
-          renderizarGrid(todosOsLivros);
-          gerarPreviewEtiquetas();
+      try {
+        let response = await fetch(urlPrimary);
+        if (!response.ok) {
+          response = await fetch(urlSecondary);
         }
-      });
+        const csvText = await response.text();
+
+        Papa.parse(csvText, {
+          header: false,
+          skipEmptyLines: 'greedy',
+          complete: function(results) {
+            if (!results.data || results.data.length <= 1) {
+              document.getElementById('gridObras').innerHTML = `<p class="col-span-full text-center text-slate-400 py-10 text-xs">Nenhuma obra cadastrada até o momento.</p>`;
+              return;
+            }
+
+            const rows = results.data.slice(1);
+            todosOsLivros = rows.map(row => ({
+              notacao: row[0] ? String(row[0]).trim() : '',
+              exemplar: row[1] ? String(row[1]).trim() : '',
+              volume: row[2] ? String(row[2]).trim() : '',
+              titulo: row[3] ? String(row[3]).trim() : '',
+              autor: row[4] ? String(row[4]).trim() : '',
+              assunto: row[5] ? String(row[5]).trim() : '',
+              corLombada: row[6] ? String(row[6]).trim().toUpperCase() : 'VERDE',
+              capa: row[7] ? String(row[7]).trim() : '',
+              dataRegistro: row[8] ? String(row[8]).trim() : ''
+            })).filter(livro => livro.titulo !== '' || livro.notacao !== '');
+
+            document.getElementById('contadorObras').innerText = `${todosOsLivros.length} obras`;
+            renderizarGrid(todosOsLivros);
+            gerarPreviewEtiquetas();
+          }
+        });
+      } catch (err) {
+        console.error("Erro ao carregar planilha SBPE:", err);
+        document.getElementById('gridObras').innerHTML = `<p class="col-span-full text-center text-red-500 font-bold py-10 text-xs">Erro ao conectar à planilha. Certifique-se de que a planilha está com acesso público no Google Drive.</p>`;
+      }
     }
 
     function renderizarGrid(livros) {
