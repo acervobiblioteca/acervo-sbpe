@@ -3,198 +3,159 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Biblioteca SBPE - Caixa Estante</title>
-  
+  <title>Biblioteca SBPE - Acervo e Etiquetas</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/papaparse/5.4.1/papaparse.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
   <style>
-    .glass-card {
-      background: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid rgba(255, 255, 255, 0.6);
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-    .glass-card:hover {
-      transform: translateY(-6px) scale(1.02);
-      box-shadow: 0 20px 30px -10px rgba(16, 185, 129, 0.25), 0 0 20px 2px rgba(5, 150, 105, 0.2);
-    }
-    .water-shine {
-      position: relative;
-      overflow: hidden;
-    }
-    .water-shine::after {
-      content: '';
-      position: absolute;
-      top: -50%;
-      left: -60%;
-      width: 200%;
-      height: 200%;
-      background: linear-gradient(60deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
-      transition: transform 0.8s ease;
-      transform: translateX(-100%);
-    }
-    .glass-card:hover .water-shine::after {
-      transform: translateX(100%);
-    }
-
-    .badge-verde { background-color: #10B981; color: white; }
-    .badge-rosa-claro { background-color: #F472B6; color: white; }
-    .badge-azul-celeste { background-color: #38BDF8; color: white; }
-    .badge-laranja { background-color: #FB923C; color: white; }
-    .badge-azul { background-color: #2563EB; color: white; }
-    .badge-vermelho { background-color: #EF4444; color: white; }
-    .badge-amarelo-fluorescente { background-color: #FACC15; color: black; }
-    .badge-preto { background-color: #1F2937; color: white; }
-    .badge-roxo { background-color: #8B5CF6; color: white; }
-    .badge-rosa-escuro { background-color: #DB2777; color: white; }
-    .badge-amarelo-medio { background-color: #EAB308; color: black; }
-
     @media print {
       body * { visibility: hidden; }
       #areaImpressao, #areaImpressao * { visibility: visible; }
       #areaImpressao {
-        position: absolute; left: 0; top: 0; width: 100%;
-        display: grid !important; grid-template-columns: repeat(3, 1fr);
-        gap: 12px; padding: 10px;
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8mm !important;
+        padding: 5mm !important;
       }
-      .etiqueta-lombada {
-        width: 6.5cm; height: 4.5cm; border: 1.5px dashed #333;
-        border-radius: 6px; padding: 8px; display: flex;
-        flex-direction: column; justify-content: space-between; box-sizing: border-box;
-        page-break-inside: avoid; font-family: monospace;
-      }
+      .no-print { display: none !important; }
+    }
+
+    .etiqueta-card {
+      width: 6.8cm;
+      height: 3.8cm;
+      border: 1.5px dashed #475569;
+      padding: 6px 8px;
+      box-sizing: border-box;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      page-break-inside: avoid;
+    }
+
+    .etiqueta-notacao {
+      font-family: monospace;
+      font-weight: 900;
+      font-size: 13px;
+      color: #0f172a;
+      letter-spacing: -0.2px;
+    }
+
+    .tag-cor-lombada {
+      font-size: 9px;
+      font-weight: 900;
+      padding: 2px 6px;
+      border-radius: 4px;
+      text-transform: uppercase;
+      color: #000000 !important;
+      border: 1px solid rgba(0, 0, 0, 0.2);
+      display: inline-block;
+    }
+
+    .cor-VERDE { background-color: #86efac; }
+    .cor-AZUL { background-color: #93c5fd; }
+    .cor-AMARELO { background-color: #fef08a; }
+    .cor-VERMELHO { background-color: #fca5a5; }
+    .cor-ROXO { background-color: #d8b4fe; }
+    .cor-PRETO { background-color: #cbd5e1; }
+    .cor-PADRAO { background-color: #e2e8f0; }
+
+    .etiqueta-titulo {
+      font-weight: 800;
+      font-size: 11px;
+      line-height: 1.25;
+      color: #0f172a;
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+      word-break: break-word;
+    }
+
+    .etiqueta-autor {
+      font-size: 10px;
+      color: #334155;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      margin-top: 2px;
+    }
+
+    .etiqueta-rodape {
+      font-size: 10px;
+      font-weight: 800;
+      color: #1e293b;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
   </style>
 </head>
-<body class="bg-gradient-to-br from-slate-100 via-emerald-50/30 to-slate-200 min-h-screen text-slate-800 flex flex-col justify-between antialiased">
+<body class="bg-slate-100 min-h-screen font-sans text-slate-800">
 
-  <header class="bg-gradient-to-r from-emerald-900 via-emerald-800 to-emerald-950 text-white shadow-lg sticky top-0 z-30 backdrop-blur-md bg-opacity-95 border-b border-emerald-700/40">
-    <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row justify-between items-center gap-3">
+  <nav class="bg-emerald-800 text-white p-4 shadow-md no-print">
+    <div class="max-w-6xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-3">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-700/60 flex items-center justify-center shadow-inner border border-emerald-500/30">
-          <i class="fa-solid fa-book-bookmark text-xl text-emerald-300"></i>
-        </div>
+        <i class="fa-solid fa-book-bookmark text-2xl text-emerald-300"></i>
         <div>
-          <h1 class="text-xl font-extrabold leading-tight tracking-tight text-emerald-50">Biblioteca SBPE</h1>
-          <p class="text-xs text-emerald-200/90 font-medium">Acervo Caixa Estante (Sistema SBPE / BPM-PE)</p>
+          <h1 class="font-bold text-lg leading-none">Biblioteca SBPE</h1>
+          <p class="text-xs text-emerald-200 mt-0.5">Acervo Caixa Estante (Sistema SBPE / BPM-PE)</p>
         </div>
       </div>
-
-      <div class="flex items-center gap-3">
-        <button onclick="abrirModalImpressao()" class="bg-emerald-700 hover:bg-emerald-600 text-emerald-50 text-xs font-bold px-3.5 py-2 rounded-xl border border-emerald-500/50 shadow flex items-center gap-2 transition">
-          <i class="fa-solid fa-print text-emerald-300"></i>
+      
+      <div class="flex items-center gap-2">
+        <button onclick="abrirModalEtiquetas()" class="bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs px-3.5 py-2 rounded-lg transition shadow flex items-center gap-1.5">
+          <i class="fa-solid fa-print"></i>
           <span>Imprimir Etiquetas</span>
         </button>
-
-        <div id="totalBadge" class="bg-emerald-950/80 text-emerald-200 text-xs font-bold px-3.5 py-2 rounded-xl border border-emerald-600/50 shadow-sm hidden flex items-center gap-2">
-          <i class="fa-solid fa-books text-emerald-400"></i>
-          <span><span id="totalLivros">0</span> obras</span>
-        </div>
+        <span id="contadorObras" class="bg-emerald-950/60 text-emerald-200 text-xs font-bold px-3 py-1.5 rounded-lg border border-emerald-700/50">0 obras</span>
       </div>
     </div>
-  </header>
+  </nav>
 
-  <main class="max-w-6xl mx-auto px-4 py-6 w-full flex-1">
-    <section class="bg-white/80 backdrop-blur-md rounded-2xl p-3 shadow-md border border-emerald-200/60 mb-6">
-      <div class="relative">
-        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-emerald-600/70 text-lg"></i>
-        <input type="text" id="searchInput" oninput="filtrarLivros()" 
-               placeholder="Pesquise por Título, Autor, Notação, Cor de Lombada ou Palavras-chave..." 
-               class="w-full pl-11 pr-4 py-3 rounded-xl bg-white/90 border border-emerald-200/80 focus:outline-none focus:ring-2 focus:ring-emerald-600 focus:border-transparent text-sm font-medium shadow-inner transition">
-      </div>
-    </section>
-
-    <div id="loading" class="my-20 flex flex-col items-center justify-center gap-4">
-      <div class="w-14 h-14 border-4 border-emerald-700 border-t-transparent rounded-full animate-spin shadow-md"></div>
-      <p class="text-emerald-900 font-semibold text-sm animate-pulse">A carregar acervo SBPE...</p>
+  <main class="max-w-6xl mx-auto p-4 space-y-4 no-print">
+    <div class="bg-white p-3 rounded-xl shadow-sm border border-slate-200">
+      <input type="text" id="inputPesquisa" onkeyup="filtrarObras()" placeholder="Pesquise por Título, Autor, Notação ou Cor de Lombada..." class="w-full px-4 py-2.5 text-xs rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-600">
     </div>
 
-    <section id="gridLivros" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-5"></section>
-
-    <div id="emptyMessage" class="hidden my-16 text-center text-slate-500 space-y-3">
-      <div class="w-16 h-16 bg-emerald-100 text-emerald-700 rounded-full flex items-center justify-center mx-auto text-2xl shadow-inner">
-        <i class="fa-solid fa-folder-open"></i>
-      </div>
-      <p class="font-bold text-slate-700">Nenhum livro encontrado no SBPE.</p>
+    <div id="gridObras" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+      <p class="col-span-full text-center text-slate-400 py-10 text-xs">Carregando acervo SBPE...</p>
     </div>
   </main>
 
-  <div id="modalImpressao" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl border border-slate-100 relative space-y-4">
-      <button onclick="fecharModalImpressao()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-emerald-100 text-slate-500 flex items-center justify-center transition">
-        <i class="fa-solid fa-xmark text-lg"></i>
-      </button>
+  <div id="modalEtiquetas" class="hidden fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl max-w-xl w-full p-5 shadow-2xl space-y-4 border border-slate-100">
+      <div class="flex justify-between items-center border-b pb-3">
+        <h3 class="font-bold text-slate-800 text-sm flex items-center gap-2">
+          <i class="fa-solid fa-tags text-emerald-700"></i>
+          <span>Imprimir Etiquetas de Lombada - SBPE</span>
+        </h3>
+        <button onclick="fecharModalEtiquetas()" class="text-slate-400 hover:text-slate-700 text-lg font-bold">✕</button>
+      </div>
 
-      <div class="flex items-center gap-3 border-b border-slate-100 pb-3">
-        <div class="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
-          <i class="fa-solid fa-print text-xl"></i>
+      <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs">
+        <div>
+          <label class="block font-bold text-slate-700 mb-1">Data Inicial:</label>
+          <input type="date" id="dataInicio" onchange="gerarPreviewEtiquetas()" class="w-full p-2 rounded-lg border border-slate-300">
         </div>
         <div>
-          <h3 class="text-base font-black text-slate-900">Gerador de Etiquetas SBPE</h3>
-          <p class="text-xs text-slate-500">Selecione o período de registro dos livros</p>
+          <label class="block font-bold text-slate-700 mb-1">Data Final:</label>
+          <input type="date" id="dataFim" onchange="gerarPreviewEtiquetas()" class="w-full p-2 rounded-lg border border-slate-300">
         </div>
       </div>
 
-      <div class="space-y-3 text-xs">
-        <div>
-          <label class="font-bold text-slate-700 block mb-1">Tipo de Filtro de Data:</label>
-          <select id="tipoFiltroData" onchange="alternarCamposData()" class="w-full p-2.5 rounded-xl border border-slate-200 font-medium">
-            <option value="hoje">Etiquetas de Hoje (Diário)</option>
-            <option value="especifica">Data Específica</option>
-            <option value="intervalo">Intervalo de Datas (Inicial e Final)</option>
-            <option value="mes">Mensal / Anual</option>
-            <option value="todas">Todas as Obras do Acervo</option>
-          </select>
-        </div>
-
-        <div id="campoDataEspecifica" class="hidden">
-          <label class="font-bold text-slate-700 block mb-1">Data:</label>
-          <input type="date" id="inputDataEspecifica" class="w-full p-2.5 rounded-xl border border-slate-200">
-        </div>
-
-        <div id="campoIntervaloData" class="hidden grid grid-cols-2 gap-2">
-          <div>
-            <label class="font-bold text-slate-700 block mb-1">Data Inicial:</label>
-            <input type="date" id="inputDataInicial" class="w-full p-2.5 rounded-xl border border-slate-200">
-          </div>
-          <div>
-            <label class="font-bold text-slate-700 block mb-1">Data Final:</label>
-            <input type="date" id="inputDataFinal" class="w-full p-2.5 rounded-xl border border-slate-200">
-          </div>
-        </div>
-
-        <div id="campoMesAno" class="hidden grid grid-cols-2 gap-2">
-          <div>
-            <label class="font-bold text-slate-700 block mb-1">Mês:</label>
-            <select id="inputMes" class="w-full p-2.5 rounded-xl border border-slate-200">
-              <option value="01">Janeiro</option><option value="02">Fevereiro</option>
-              <option value="03">Março</option><option value="04">Abril</option>
-              <option value="05">Maio</option><option value="06">Junho</option>
-              <option value="07">Julho</option><option value="08">Agosto</option>
-              <option value="09">Setembro</option><option value="10">Outubro</option>
-              <option value="11">Novembro</option><option value="12">Dezembro</option>
-            </select>
-          </div>
-          <div>
-            <label class="font-bold text-slate-700 block mb-1">Ano:</label>
-            <input type="number" id="inputAno" value="2026" class="w-full p-2.5 rounded-xl border border-slate-200">
-          </div>
-        </div>
-
-        <div id="resultadoContagemEtiquetas" class="p-3 bg-emerald-50 rounded-xl text-emerald-900 font-semibold text-center border border-emerald-200/60">
-          Clique em "Gerar Prévia" para calcular
-        </div>
-      </div>
-
-      <div class="flex gap-2 pt-2">
-        <button onclick="gerarPreviaImpressao()" class="flex-1 bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold py-3 rounded-xl transition">
-          Gerar Prévia
-        </button>
-        <button onclick="executarImpressao()" class="flex-1 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold py-3 rounded-xl transition flex items-center justify-center gap-2">
-          <i class="fa-solid fa-print"></i> Imprimir
+      <div class="flex justify-end gap-2 pt-2">
+        <button onclick="fecharModalEtiquetas()" class="px-4 py-2 bg-slate-200 text-slate-700 rounded-lg text-xs font-bold">Cancelar</button>
+        <button onclick="window.print()" class="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white rounded-lg text-xs font-bold shadow flex items-center gap-1.5">
+          <i class="fa-solid fa-print"></i>
+          <span>Imprimir Agora</span>
         </button>
       </div>
     </div>
@@ -202,312 +163,141 @@
 
   <div id="areaImpressao" class="hidden"></div>
 
-  <div id="modalDetalhes" class="hidden fixed inset-0 bg-slate-950/70 backdrop-blur-md z-50 flex items-center justify-center p-4">
-    <div class="bg-white/95 rounded-3xl max-w-xl w-full p-6 shadow-2xl border border-slate-100 relative max-h-[90vh] overflow-y-auto">
-      <button onclick="fecharModal()" class="absolute top-4 right-4 w-9 h-9 rounded-full bg-slate-100 hover:bg-emerald-100 hover:text-emerald-800 text-slate-500 flex items-center justify-center transition shadow-sm">
-        <i class="fa-solid fa-xmark text-lg"></i>
-      </button>
-
-      <div class="flex flex-col sm:flex-row gap-5 items-center sm:items-start pt-2">
-        <div class="w-36 sm:w-40 flex-shrink-0 aspect-[2/3] bg-slate-100 rounded-xl overflow-hidden shadow-xl border border-slate-200/80 relative">
-          <img id="modalCapa" src="" class="w-full h-full object-cover" alt="Capa da obra">
-        </div>
-
-        <div class="space-y-3 flex-1 text-center sm:text-left">
-          <div class="flex flex-wrap gap-2 items-center justify-center sm:justify-start">
-            <span id="modalNotacao" class="inline-block px-3 py-1 rounded-lg bg-emerald-100 text-emerald-900 font-mono font-bold text-xs shadow-sm border border-emerald-200/60"></span>
-            <span id="modalCorBadge" class="inline-block px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm"></span>
-          </div>
-          <h2 id="modalTitulo" class="text-lg font-black text-slate-900 leading-snug"></h2>
-          <p id="modalAutor" class="text-sm font-semibold text-emerald-800/90"></p>
-          <p id="modalDataRegistro" class="text-xs text-slate-400 font-mono"></p>
-
-          <div class="pt-1 flex flex-wrap gap-1.5 justify-center sm:justify-start">
-            <span id="modalExemplarTag" class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-[11px] font-bold border border-slate-200/60"></span>
-            <span id="modalVolumeTag" class="px-2.5 py-1 rounded-md bg-slate-100 text-slate-600 text-[11px] font-bold border border-slate-200/60"></span>
-          </div>
-        </div>
-      </div>
-
-      <div class="border-t border-slate-100 pt-4 mt-4 space-y-2">
-        <h4 class="text-xs font-bold text-slate-800 uppercase tracking-wider flex items-center gap-1.5">
-          <i class="fa-solid fa-tags text-emerald-600"></i> Palavras-Chave de Autoridade (BN):
-        </h4>
-        <div id="modalBadgesAssunto" class="flex flex-wrap gap-1.5 pt-1"></div>
-      </div>
-    </div>
-  </div>
-
-  <footer class="bg-white/80 border-t border-slate-200/60 py-4 text-center text-xs text-slate-500 mt-8 backdrop-blur-sm">
-    <p>© Biblioteca SBPE — Sistema de Bibliotecas Públicas de Pernambuco</p>
-  </footer>
-
   <script>
     const SPREADSHEET_ID = '1qp9NMs2qTPEjd9ks5TjG3Gq27A6zWnqfhVZM0kJB6gw';
-    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv`;
+    const CSV_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:csv&_ts=${Date.now()}`;
+    let todosOsLivros = [];
 
-    let acervoCompleto = [];
-    let livrosSelecionadosParaImpressao = [];
+    window.onload = function() { carregarDadosPlanilha(); };
 
-    window.addEventListener('DOMContentLoaded', carregarAcervo);
-
-    function carregarAcervo() {
-      const safetyTimeout = setTimeout(() => {
-        if (acervoCompleto.length === 0) {
-          document.getElementById('loading').classList.add('hidden');
-          document.getElementById('emptyMessage').classList.remove('hidden');
-        }
-      }, 7000);
-
+    function carregarDadosPlanilha() {
       Papa.parse(CSV_URL, {
         download: true,
         header: false,
         skipEmptyLines: true,
         complete: function(results) {
-          clearTimeout(safetyTimeout);
-          document.getElementById('loading').classList.add('hidden');
-
-          if (!results.data || results.data.length <= 1) {
-            document.getElementById('emptyMessage').classList.remove('hidden');
-            return;
-          }
-
-          const linhas = results.data.slice(1);
-
-          acervoCompleto = linhas.map(row => ({
-            notacao: (row[0] || '').trim().replace(/^"|"$/g, ''),
-            exemplar: (row[1] || '').trim().replace(/^"|"$/g, ''),
-            volume: (row[2] || '').trim().replace(/^"|"$/g, ''),
-            titulo: (row[3] || '').trim().replace(/^"|"$/g, ''),
-            autor: (row[4] || '').trim().replace(/^"|"$/g, ''),
-            assunto: (row[5] || '').trim().replace(/^"|"$/g, ''),
-            cor: (row[6] || '').trim().replace(/^"|"$/g, ''),
-            capa: (row[7] || '').trim().replace(/^"|"$/g, ''),
-            dataRegistro: (row[8] || '').trim().replace(/^"|"$/g, '')
+          const rows = results.data.slice(1);
+          todosOsLivros = rows.map(row => ({
+            notacao: row[0] ? row[0].trim() : '',
+            exemplar: row[1] ? row[1].trim() : '',
+            volume: row[2] ? row[2].trim() : '',
+            titulo: row[3] ? row[3].trim() : '',
+            autor: row[4] ? row[4].trim() : '',
+            assunto: row[5] ? row[5].trim() : '',
+            corLombada: row[6] ? row[6].trim().toUpperCase() : 'VERDE',
+            capa: row[7] ? row[7].trim() : '',
+            dataRegistro: row[8] ? row[8].trim() : ''
           })).filter(livro => livro.titulo !== '' || livro.notacao !== '');
 
-          if (acervoCompleto.length === 0) {
-            document.getElementById('emptyMessage').classList.remove('hidden');
-            return;
-          }
-
-          document.getElementById('totalBadge').classList.remove('hidden');
-          document.getElementById('totalLivros').innerText = acervoCompleto.length;
-          document.getElementById('gridLivros').classList.remove('hidden');
-
-          renderizarLivros(acervoCompleto);
-        },
-        error: function() {
-          clearTimeout(safetyTimeout);
-          document.getElementById('loading').classList.add('hidden');
-          document.getElementById('emptyMessage').classList.remove('hidden');
+          document.getElementById('contadorObras').innerText = `${todosOsLivros.length} obras`;
+          renderizarGrid(todosOsLivros);
+          gerarPreviewEtiquetas();
         }
       });
     }
 
-    function renderizarLivros(lista) {
-      const grid = document.getElementById('gridLivros');
-      const emptyMsg = document.getElementById('emptyMessage');
-      grid.innerHTML = '';
-
-      if (lista.length === 0) {
-        emptyMsg.classList.remove('hidden');
+    function renderizarGrid(livros) {
+      const grid = document.getElementById('gridObras');
+      if (livros.length === 0) {
+        grid.innerHTML = `<p class="col-span-full text-center text-slate-400 py-10 text-xs">Nenhuma obra encontrada.</p>`;
         return;
       }
-
-      emptyMsg.classList.add('hidden');
-
-      lista.forEach(livro => {
-        const card = document.createElement('div');
-        card.className = "glass-card rounded-2xl overflow-hidden shadow-sm cursor-pointer flex flex-col justify-between water-shine group";
-        card.onclick = () => abrirModal(livro);
-
-        const capaSrc = livro.capa ? livro.capa : 'https://via.placeholder.com/300x450?text=Sem+Capa';
-        const listaAssuntos = livro.assunto.split(',').map(s => s.trim()).filter(s => s.length > 0);
-        const primeiroAssunto = listaAssuntos[0] || 'Acervo SBPE';
-
-        card.innerHTML = `
-          <div>
-            <div class="relative w-full aspect-[2/3] bg-slate-100 overflow-hidden">
-              <img src="${capaSrc}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500" loading="lazy" alt="${livro.titulo}">
-              ${livro.cor && livro.cor !== 'N/A' ? `<span class="absolute top-2 right-2 text-[10px] font-bold px-2 py-0.5 rounded-md shadow ${getBadgeColorClass(livro.cor)}">${livro.cor}</span>` : ''}
-              <div class="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition duration-300"></div>
-            </div>
-
-            <div class="p-3.5">
-              <span class="inline-block text-[10px] font-mono font-bold bg-emerald-100 text-emerald-900 px-2 py-0.5 rounded-md mb-1.5 shadow-sm border border-emerald-200/50">${livro.notacao || 'SBPE'}</span>
-              <h3 class="text-xs font-extrabold text-slate-900 line-clamp-2 leading-snug group-hover:text-emerald-800 transition">${livro.titulo || 'Sem Título'}</h3>
-              <p class="text-[11px] font-medium text-slate-500 truncate mt-1">${livro.autor || 'Autor Desconhecido'}</p>
-            </div>
+      grid.innerHTML = livros.map(livro => `
+        <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col justify-between hover:shadow-md transition">
+          <div class="h-44 bg-slate-100 overflow-hidden relative">
+            <img src="${livro.capa || 'https://via.placeholder.com/150x200?text=Sem+Capa'}" class="w-full h-full object-cover">
+            <span class="absolute top-2 right-2 tag-cor-lombada cor-${obterClasseCor(livro.corLombada)}">${livro.corLombada}</span>
           </div>
-
-          <div class="px-3.5 pb-3 pt-2 border-t border-slate-100/80 flex justify-between items-center text-[10px] text-slate-400">
-            <span class="font-bold text-emerald-700/80 truncate max-w-[80%]">${primeiroAssunto}</span>
-            <i class="fa-solid fa-arrow-up-right-from-square text-emerald-600/60 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition"></i>
+          <div class="p-3 space-y-1">
+            <span class="inline-block bg-slate-100 text-slate-800 text-[10px] font-mono font-bold px-2 py-0.5 rounded border border-slate-200">${livro.notacao}</span>
+            <h4 class="font-bold text-xs text-slate-900 truncate">${livro.titulo}</h4>
+            <p class="text-[10px] text-slate-500 truncate">${livro.autor}</p>
           </div>
-        `;
-
-        grid.appendChild(card);
-      });
+        </div>
+      `).join('');
     }
 
-    function filtrarLivros() {
-      const termo = document.getElementById('searchInput').value.toLowerCase().trim();
+    function gerarPreviewEtiquetas() {
+      const area = document.getElementById('areaImpressao');
+      const dInicio = document.getElementById('dataInicio').value;
+      const dFim = document.getElementById('dataFim').value;
 
-      const filtrados = acervoCompleto.filter(item => {
-        return (item.titulo.toLowerCase().includes(termo) ||
-                item.autor.toLowerCase().includes(termo) ||
-                item.notacao.toLowerCase().includes(termo) ||
-                item.cor.toLowerCase().includes(termo) ||
-                item.assunto.toLowerCase().includes(termo) ||
-                item.dataRegistro.toLowerCase().includes(termo));
-      });
-
-      renderizarLivros(filtrados);
-    }
-
-    function abrirModal(livro) {
-      document.getElementById('modalCapa').src = livro.capa ? livro.capa : 'https://via.placeholder.com/300x450?text=Sem+Capa';
-      document.getElementById('modalNotacao').innerText = livro.notacao || 'Sem Notação';
-      document.getElementById('modalTitulo').innerText = livro.titulo || 'Sem Título';
-      document.getElementById('modalAutor').innerText = livro.autor || 'Autor não informado';
-      document.getElementById('modalDataRegistro').innerText = livro.dataRegistro ? 'Cadastrado em: ' + livro.dataRegistro : '';
-
-      const badgeCor = document.getElementById('modalCorBadge');
-      if (livro.cor && livro.cor !== 'N/A') {
-        badgeCor.className = `inline-block px-2.5 py-1 rounded-lg text-xs font-bold shadow-sm ${getBadgeColorClass(livro.cor)}`;
-        badgeCor.innerText = livro.cor;
-        badgeCor.classList.remove('hidden');
-      } else {
-        badgeCor.classList.add('hidden');
-      }
-
-      document.getElementById('modalExemplarTag').innerText = livro.exemplar ? livro.exemplar : '1º Exemplar (Padrão)';
-      document.getElementById('modalVolumeTag').innerText = livro.volume ? (livro.volume.toLowerCase().includes('vol') ? livro.volume : 'Vol. ' + livro.volume) : 'Volume Único';
-
-      const containerBadges = document.getElementById('modalBadgesAssunto');
-      containerBadges.innerHTML = '';
-
-      const palavrasChave = livro.assunto.split(',').map(s => s.trim()).filter(s => s.length > 0);
-
-      if (palavrasChave.length === 0) {
-        containerBadges.innerHTML = '<span class="text-xs text-slate-400 italic">Nenhum assunto cadastrado</span>';
-      } else {
-        palavrasChave.forEach(palavra => {
-          const chip = document.createElement('span');
-          chip.className = "px-2.5 py-1 rounded-lg bg-emerald-50 text-emerald-900 border border-emerald-200/80 text-xs font-semibold shadow-sm hover:bg-emerald-100 transition";
-          chip.innerText = palavra;
-          containerBadges.appendChild(chip);
-        });
-      }
-
-      document.getElementById('modalDetalhes').classList.remove('hidden');
-    }
-
-    function fecharModal() {
-      document.getElementById('modalDetalhes').classList.add('hidden');
-    }
-
-    function getBadgeColorClass(cor) {
-      const c = cor.toLowerCase().trim();
-      if (c.includes('verde')) return 'badge-verde';
-      if (c.includes('rosa claro')) return 'badge-rosa-claro';
-      if (c.includes('azul celeste')) return 'badge-azul-celeste';
-      if (c.includes('laranja')) return 'badge-laranja';
-      if (c.includes('azul')) return 'badge-azul';
-      if (c.includes('vermelho')) return 'badge-vermelho';
-      if (c.includes('amarelo fluorescente')) return 'badge-amarelo-fluorescente';
-      if (c.includes('preto')) return 'badge-preto';
-      if (c.includes('roxo')) return 'badge-roxo';
-      if (c.includes('rosa escuro')) return 'badge-rosa-escuro';
-      if (c.includes('amarelo')) return 'badge-amarelo-medio';
-      return 'bg-slate-700 text-white';
-    }
-
-    function abrirModalImpressao() {
-      document.getElementById('modalImpressao').classList.remove('hidden');
-      alternarCamposData();
-    }
-
-    function fecharModalImpressao() {
-      document.getElementById('modalImpressao').classList.add('hidden');
-    }
-
-    function alternarCamposData() {
-      const tipo = document.getElementById('tipoFiltroData').value;
-      document.getElementById('campoDataEspecifica').classList.toggle('hidden', tipo !== 'especifica');
-      document.getElementById('campoIntervaloData').classList.toggle('hidden', tipo !== 'intervalo');
-      document.getElementById('campoMesAno').classList.toggle('hidden', tipo !== 'mes');
-    }
-
-    function gerarPreviaImpressao() {
-      const tipo = document.getElementById('tipoFiltroData').value;
-      const hojeStr = new Date().toISOString().split('T')[0];
-
-      livrosSelecionadosParaImpressao = acervoCompleto.filter(item => {
-        if (!item.dataRegistro) return tipo === 'todas';
-        const dataApenas = item.dataRegistro.split(' ')[0];
-
-        if (tipo === 'hoje') return dataApenas === hojeStr;
-        if (tipo === 'especifica') {
-          const dt = document.getElementById('inputDataEspecifica').value;
-          return dataApenas === dt;
-        }
-        if (tipo === 'intervalo') {
-          const dtIni = document.getElementById('inputDataInicial').value;
-          const dtFin = document.getElementById('inputDataFinal').value;
-          return dataApenas >= dtIni && dataApenas <= dtFin;
-        }
-        if (tipo === 'mes') {
-          const mes = document.getElementById('inputMes').value;
-          const ano = document.getElementById('inputAno').value;
-          return dataApenas.startsWith(`${ano}-${mes}`);
-        }
+      const filtrados = todosOsLivros.filter(l => {
+        if (!dInicio && !dFim) return true;
+        if (!l.dataRegistro) return true;
+        const dataLivro = l.dataRegistro.split(' ')[0];
+        if (dInicio && dataLivro < dInicio) return false;
+        if (dFim && dataLivro > dFim) return false;
         return true;
       });
 
-      const resDiv = document.getElementById('resultadoContagemEtiquetas');
-      resDiv.innerHTML = `<strong>${livrosSelecionadosParaImpressao.length}</strong> etiquetas prontas para impressão!`;
-    }
+      area.innerHTML = filtrados.map(livro => {
+        let textEx = '';
+        if (livro.exemplar) {
+          const ex = livro.exemplar.trim();
+          const exLower = ex.toLowerCase();
+          if (ex !== '' && !exLower.includes('1º') && exLower !== 'ex. 1' && exLower !== '1') {
+            textEx = ex;
+          }
+        }
 
-    function executarImpressao() {
-      if (livrosSelecionadosParaImpressao.length === 0) {
-        gerarPreviaImpressao();
-      }
+        let textVol = '';
+        if (livro.volume) {
+          const v = livro.volume.trim();
+          const vLower = v.toLowerCase();
+          if (v !== '' && vLower !== 'único' && vLower !== 'unico' && vLower !== '1' && vLower !== 'vol. 1' && vLower !== 'v. 1') {
+            textVol = `Vol. ${v}`;
+          }
+        }
 
-      if (livrosSelecionadosParaImpressao.length === 0) {
-        alert("Nenhum livro encontrado para o período selecionado.");
-        return;
-      }
+        const classeCor = obterClasseCor(livro.corLombada);
 
-      const area = document.getElementById('areaImpressao');
-      area.innerHTML = '';
-
-      livrosSelecionadosParaImpressao.forEach(livro => {
-        const elem = document.createElement('div');
-        elem.className = 'etiqueta-lombada';
-        elem.innerHTML = `
-          <div style="font-size: 14px; font-weight: bold; border-bottom: 1px solid #000; padding-bottom: 2px; display: flex; justify-content: space-between;">
-            <span>${livro.notacao || 'SBPE'}</span>
-            <span style="font-size: 10px;">${livro.cor || ''}</span>
-          </div>
-          <div style="font-size: 10px; font-weight: bold; margin-top: 4px; line-height: 1.1;">
-            ${livro.titulo.substring(0, 45)}
-          </div>
-          <div style="font-size: 9px; color: #444; margin-top: 2px;">
-            ${livro.autor.substring(0, 30)}
-          </div>
-          <div style="font-size: 9px; font-weight: bold; margin-top: 4px; display: flex; justify-content: space-between; border-top: 1px solid #ccc; pt-1;">
-            <span>${livro.exemplar || '1º Ex.'}</span>
-            <span>${livro.volume || 'Vol. Único'}</span>
+        return `
+          <div class="etiqueta-card">
+            <div class="flex justify-between items-center">
+              <span class="etiqueta-notacao">${livro.notacao}</span>
+              <span class="tag-cor-lombada cor-${classeCor}">${livro.corLombada || 'VERDE'}</span>
+            </div>
+            <hr class="border-t border-slate-300 my-1">
+            <div class="flex-1 flex flex-col justify-center">
+              <div class="etiqueta-titulo">${livro.titulo}</div>
+              <div class="etiqueta-autor">${livro.autor}</div>
+            </div>
+            <hr class="border-t border-slate-300 my-1">
+            <div class="etiqueta-rodape">
+              <span>${textEx}</span>
+              <span>${textVol}</span>
+            </div>
           </div>
         `;
-        area.appendChild(elem);
-      });
-
-      fecharModalImpressao();
-      window.print();
+      }).join('');
     }
+
+    function obterClasseCor(cor) {
+      if (!cor) return 'PADRAO';
+      const c = cor.toUpperCase();
+      if (c.includes('VERDE')) return 'VERDE';
+      if (c.includes('AZUL')) return 'AZUL';
+      if (c.includes('AMARELO')) return 'AMARELO';
+      if (c.includes('VERMELHO')) return 'VERMELHO';
+      if (c.includes('ROXO')) return 'ROXO';
+      if (c.includes('PRETO')) return 'PRETO';
+      return 'PADRAO';
+    }
+
+    function filtrarObras() {
+      const termo = document.getElementById('inputPesquisa').value.toLowerCase();
+      const filtrados = todosOsLivros.filter(l => 
+        l.titulo.toLowerCase().includes(termo) ||
+        l.autor.toLowerCase().includes(termo) ||
+        l.notacao.toLowerCase().includes(termo) ||
+        l.corLombada.toLowerCase().includes(termo)
+      );
+      renderizarGrid(filtrados);
+    }
+
+    function abrirModalEtiquetas() { document.getElementById('modalEtiquetas').classList.remove('hidden'); }
+    function fecharModalEtiquetas() { document.getElementById('modalEtiquetas').classList.add('hidden'); }
   </script>
 </body>
 </html>
