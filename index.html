@@ -9,6 +9,10 @@
   
   <style>
     @media print {
+      * {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
       body * { visibility: hidden; }
       #areaImpressao, #areaImpressao * { visibility: visible; }
       #areaImpressao {
@@ -53,17 +57,19 @@
       border-radius: 4px;
       text-transform: uppercase;
       color: #000000 !important;
-      border: 1px solid rgba(0, 0, 0, 0.2);
+      border: 1px solid rgba(0, 0, 0, 0.3);
       display: inline-block;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
     }
 
-    .cor-VERDE { background-color: #86efac; }
-    .cor-AZUL { background-color: #93c5fd; }
-    .cor-AMARELO { background-color: #fef08a; }
-    .cor-VERMELHO { background-color: #fca5a5; }
-    .cor-ROXO { background-color: #d8b4fe; }
-    .cor-PRETO { background-color: #cbd5e1; }
-    .cor-PADRAO { background-color: #e2e8f0; }
+    .cor-VERDE { background-color: #86efac !important; }
+    .cor-AZUL { background-color: #93c5fd !important; }
+    .cor-AMARELO { background-color: #fef08a !important; }
+    .cor-VERMELHO { background-color: #fca5a5 !important; }
+    .cor-ROXO { background-color: #d8b4fe !important; }
+    .cor-PRETO, .cor-CINZA { background-color: #cbd5e1 !important; }
+    .cor-PADRAO { background-color: #e2e8f0 !important; }
 
     .etiqueta-titulo {
       font-weight: 800;
@@ -334,7 +340,7 @@
       if (c.includes('AMARELO')) return 'AMARELO';
       if (c.includes('VERMELHO')) return 'VERMELHO';
       if (c.includes('ROXO')) return 'ROXO';
-      if (c.includes('PRETO')) return 'PRETO';
+      if (c.includes('PRETO') || c.includes('CINZA')) return 'CINZA';
       return 'PADRAO';
     }
 
