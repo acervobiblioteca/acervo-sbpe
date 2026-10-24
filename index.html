@@ -13,6 +13,11 @@
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
       }
+      html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        background: #ffffff !important;
+      }
       body * { visibility: hidden; }
       #areaImpressao, #areaImpressao * { visibility: visible; }
       #areaImpressao {
@@ -22,8 +27,15 @@
         width: 100%;
         display: grid !important;
         grid-template-columns: repeat(2, 1fr) !important;
-        gap: 8mm !important;
-        padding: 5mm !important;
+        gap: 6mm 8mm !important;
+        padding: 8mm 6mm !important;
+        box-sizing: border-box !important;
+      }
+      .etiqueta-card {
+        border: 1px dashed #64748b !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
       }
       .no-print { display: none !important; }
     }
@@ -55,6 +67,7 @@
       transition: 0s;
     }
 
+    /* Dimensões precisas das Etiquetas (6.8cm x 3.8cm) */
     .etiqueta-card {
       width: 6.8cm;
       height: 3.8cm;
@@ -67,41 +80,97 @@
       justify-content: space-between;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
       page-break-inside: avoid;
+      break-inside: avoid;
+      border-radius: 4px;
     }
 
     .etiqueta-notacao {
-      font-family: monospace;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
       font-weight: 900;
-      font-size: 13px;
+      font-size: 12.5px;
       color: #0f172a;
       letter-spacing: -0.2px;
     }
 
     .tag-cor-lombada {
-      font-size: 9px;
+      font-size: 8.5px;
       font-weight: 900;
       padding: 2px 6px;
       border-radius: 4px;
       text-transform: uppercase;
-      color: #000000 !important;
-      border: 1px solid rgba(0, 0, 0, 0.3);
       display: inline-block;
+      white-space: nowrap;
+      line-height: 1;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
 
-    .cor-VERDE { background-color: #86efac !important; }
-    .cor-AZUL { background-color: #93c5fd !important; }
-    .cor-AMARELO { background-color: #fef08a !important; }
-    .cor-VERMELHO { background-color: #fca5a5 !important; }
-    .cor-ROXO { background-color: #d8b4fe !important; }
-    .cor-PRETO, .cor-CINZA { background-color: #cbd5e1 !important; }
-    .cor-PADRAO { background-color: #e2e8f0 !important; }
+    /* Mapeamento Rigoroso de Cores de Lombada */
+    .cor-ROSA {
+      background-color: #f472b6 !important;
+      color: #831843 !important;
+      border: 1px solid #db2777 !important;
+    }
+    .cor-VERDE-CLARO {
+      background-color: #bef264 !important;
+      color: #365314 !important;
+      border: 1px solid #65a30d !important;
+    }
+    .cor-VERDE {
+      background-color: #86efac !important;
+      color: #14532d !important;
+      border: 1px solid #16a34a !important;
+    }
+    .cor-AZUL-CLARO {
+      background-color: #7dd3fc !important;
+      color: #0c4a6e !important;
+      border: 1px solid #0284c7 !important;
+    }
+    .cor-AZUL {
+      background-color: #93c5fd !important;
+      color: #1e3a8a !important;
+      border: 1px solid #2563eb !important;
+    }
+    .cor-AMARELO {
+      background-color: #fef08a !important;
+      color: #713f12 !important;
+      border: 1px solid #ca8a04 !important;
+    }
+    .cor-VERMELHO {
+      background-color: #fca5a5 !important;
+      color: #7f1d1d !important;
+      border: 1px solid #dc2626 !important;
+    }
+    .cor-ROXO {
+      background-color: #d8b4fe !important;
+      color: #581c87 !important;
+      border: 1px solid #9333ea !important;
+    }
+    .cor-LARANJA {
+      background-color: #fdba74 !important;
+      color: #7c2d12 !important;
+      border: 1px solid #ea580c !important;
+    }
+    .cor-CINZA {
+      background-color: #cbd5e1 !important;
+      color: #0f172a !important;
+      border: 1px solid #64748b !important;
+    }
+    .cor-BRANCO {
+      background-color: #ffffff !important;
+      color: #0f172a !important;
+      border: 1.5px solid #475569 !important;
+    }
+    .cor-PADRAO {
+      background-color: #e2e8f0 !important;
+      color: #334155 !important;
+      border: 1px solid #94a3b8 !important;
+    }
 
     .etiqueta-titulo {
       font-weight: 800;
-      font-size: 11px;
-      line-height: 1.25;
+      font-size: 10.5px;
+      line-height: 1.2;
       color: #0f172a;
       display: -webkit-box;
       -webkit-line-clamp: 3;
@@ -111,17 +180,17 @@
     }
 
     .etiqueta-autor {
-      font-size: 10px;
-      color: #334155;
+      font-size: 9px;
+      color: #475569;
       font-weight: 600;
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      margin-top: 2px;
+      margin-top: 3px;
     }
 
     .etiqueta-rodape {
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 800;
       color: #1e293b;
       display: flex;
@@ -538,9 +607,9 @@
               <span class="tag-cor-lombada cor-${classeCor}">${livro.corLombada || 'VERDE'}</span>
             </div>
             <hr class="border-t border-slate-300 my-1">
-            <div class="flex-1 flex flex-col justify-center">
+            <div class="flex-1 flex flex-col justify-center my-0.5">
               <div class="etiqueta-titulo">${livro.titulo}</div>
-              <div class="etiqueta-autor">${livro.autor}</div>
+              <div class="etiqueta-autor">${livro.autor || 'Autor não informado'}</div>
             </div>
             <hr class="border-t border-slate-300 my-1">
             <div class="etiqueta-rodape">
@@ -554,13 +623,18 @@
 
     function obterClasseCor(cor) {
       if (!cor) return 'PADRAO';
-      const c = cor.toUpperCase();
+      const c = String(cor).trim().toUpperCase();
+      if (c.includes('VERDE CLARO') || c.includes('VERDE-CLARO')) return 'VERDE-CLARO';
+      if (c.includes('AZUL CLARO') || c.includes('AZUL-CLARO')) return 'AZUL-CLARO';
       if (c.includes('VERDE')) return 'VERDE';
       if (c.includes('AZUL')) return 'AZUL';
       if (c.includes('AMARELO')) return 'AMARELO';
       if (c.includes('VERMELHO')) return 'VERMELHO';
       if (c.includes('ROXO')) return 'ROXO';
-      if (c.includes('PRETO') || c.includes('CINZA')) return 'CINZA';
+      if (c.includes('ROSA')) return 'ROSA';
+      if (c.includes('LARANJA')) return 'LARANJA';
+      if (c.includes('CINZA') || c.includes('PRETO')) return 'CINZA';
+      if (c.includes('BRANCO')) return 'BRANCO';
       return 'PADRAO';
     }
 
