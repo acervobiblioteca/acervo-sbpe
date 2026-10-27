@@ -161,6 +161,32 @@
       color: #0f172a !important;
       border: 1.5px solid #475569 !important;
     }
+    /* CORES ESCURAS AJUSTADAS COM FONTE BRANCA ESTREITA */
+    .cor-PRETO {
+      background-color: #18181b !important;
+      color: #ffffff !important;
+      border: 1px solid #000000 !important;
+    }
+    .cor-MARROM {
+      background-color: #582f0e !important;
+      color: #ffffff !important;
+      border: 1px solid #3d1e07 !important;
+    }
+    .cor-BEGE {
+      background-color: #785938 !important;
+      color: #ffffff !important;
+      border: 1px solid #543d24 !important;
+    }
+    .cor-VINHO {
+      background-color: #800020 !important;
+      color: #ffffff !important;
+      border: 1px solid #4a0012 !important;
+    }
+    .cor-MULTICOLORIDO {
+      background-color: #312e81 !important;
+      color: #ffffff !important;
+      border: 1px solid #1e1b4b !important;
+    }
     .cor-PADRAO {
       background-color: #e2e8f0 !important;
       color: #334155 !important;
@@ -621,6 +647,7 @@
       }).join('');
     }
 
+    /* MAPEAMENTO RIGOROSO E CORRIGIDO DE CLASSES DE COR */
     function obterClasseCor(cor) {
       if (!cor) return 'PADRAO';
       const c = String(cor).trim().toUpperCase();
@@ -633,7 +660,12 @@
       if (c.includes('ROXO')) return 'ROXO';
       if (c.includes('ROSA')) return 'ROSA';
       if (c.includes('LARANJA')) return 'LARANJA';
-      if (c.includes('CINZA') || c.includes('PRETO')) return 'CINZA';
+      if (c.includes('PRETO')) return 'PRETO';
+      if (c.includes('MARROM')) return 'MARROM';
+      if (c.includes('BEGE')) return 'BEGE';
+      if (c.includes('VINHO')) return 'VINHO';
+      if (c.includes('MULTICOLORIDO')) return 'MULTICOLORIDO';
+      if (c.includes('CINZA')) return 'CINZA';
       if (c.includes('BRANCO')) return 'BRANCO';
       return 'PADRAO';
     }
