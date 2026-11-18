@@ -41,7 +41,10 @@
         <!-- Campo de Busca -->
         <div class="md:col-span-8 relative">
           <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
-          <input type="text" id="campoBusca" oninput="aplicarFiltros()" placeholder="Buscar por título, autor, notação (ex: F ORW) ou assunto..." class="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#800020] focus:border-transparent">
+          <input type="text" id="campoBusca" oninput="aplicarFiltros()" placeholder="Buscar por título, autor, notação (ex: F ORW) ou assunto..." class="w-full pl-10 pr-9 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#800020] focus:border-transparent">
+          <button type="button" id="btnLimparBusca" onclick="limparCampoBusca()" title="Limpar busca" class="hidden absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-700 font-bold text-xs">
+            ✕
+          </button>
         </div>
 
         <!-- Ordenação -->
@@ -65,6 +68,9 @@
       </div>
     </section>
 
+    <!-- BANNER "VOCÊ QUIS DIZER..." / AVISO DE OUTRAS CORES -->
+    <div id="bannerSugestao" class="hidden bg-amber-50 border border-amber-300 px-4 py-3 rounded-2xl flex flex-wrap items-center justify-between gap-2 text-xs shadow-sm"></div>
+
     <!-- ESTADO DE CARREGAMENTO / ERRO -->
     <div id="statusCarregamento" class="bg-white p-10 rounded-2xl border border-slate-200 text-center space-y-2">
       <div class="w-9 h-9 border-4 border-[#800020] border-t-transparent rounded-full animate-spin mx-auto"></div>
@@ -77,7 +83,7 @@
     <!-- ESTADO VAZIO -->
     <div id="estadoVazio" class="hidden bg-white p-10 rounded-2xl border border-slate-200 text-center space-y-2">
       <p class="text-sm font-bold text-slate-700">Nenhuma obra encontrada com esses filtros.</p>
-      <p class="text-xs text-slate-500">Tente limpar a busca ou selecionar "Todas".</p>
+      <p id="textoAuxiliarVazio" class="text-xs text-slate-500">Tente limpar a busca ou selecionar "Todas".</p>
     </div>
   </main>
 
@@ -102,16 +108,20 @@
           <button type="button" onclick="fecharModalDetalhes()" class="text-slate-400 hover:text-slate-700 font-bold p-1">✕</button>
         </div>
 
-        <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-2 text-xs">
+        <div class="bg-slate-50 p-3.5 rounded-xl border border-slate-200/80 space-y-2.5 text-xs">
           <div>
             <span class="font-bold text-slate-700">Cor na Estante: </span>
             <span id="detalheCorBadge" class="inline-block font-bold px-2 py-0.5 rounded-full text-[11px]"></span>
           </div>
-          <div>
-            <span class="font-bold text-slate-700">Assuntos: </span>
-            <span id="detalheAssunto" class="text-slate-600"></span>
+
+          <div class="space-y-1.5">
+            <div class="flex items-center justify-between">
+              <span class="font-bold text-slate-700">Assuntos (clique para ver obras relacionadas):</span>
+            </div>
+            <div id="detalheAssuntoTags" class="flex flex-wrap gap-1.5"></div>
           </div>
-          <div>
+
+          <div class="pt-1 border-t border-slate-200/60">
             <span class="font-bold text-slate-700">Data de Registro: </span>
             <span id="detalheData" class="text-slate-500"></span>
           </div>
@@ -160,6 +170,10 @@
     let acervoFiltrado = [];
     let corFiltroAtiva = 'TODAS';
 
+    // Dicionários indexados da planilha para "Você quis dizer..."
+    let vocabularioPalavras = new Map(); // palavra_norm -> frequencia
+    let vocabularioFrases = [];          // [{ original, norm, freq }]
+
     function obterInfoCor(corRaw) {
       const chave = String(corRaw || '').trim().toUpperCase();
       return { chave: chave || 'NÃO DEFINIDA', ...(COLOR_MAP[chave] || FALLBACK_COR) };
@@ -202,6 +216,154 @@
       return '';
     }
 
+    function normalizarBusca(str) {
+      return String(str || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim();
+    }
+
+    function construirIndiceVocabulario(lista) {
+      vocabularioPalavras = new Map();
+      const mapaFrases = new Map();
+
+      lista.forEach(item => {
+        const textoCompleto = `${item.titulo} ${item.autor} ${item.assunto}`;
+        const palavras = normalizarBusca(textoCompleto)
+          .replace(/[^a-z0-9\s]/g, ' ')
+          .split(/\s+/)
+          .filter(p => p.length >= 4);
+
+        palavras.forEach(p => {
+          vocabularioPalavras.set(p, (vocabularioPalavras.get(p) || 0) + 1);
+        });
+
+        // Indexa também os descritores de assunto completos
+        if (item.assunto) {
+          item.assunto.split(/[,;]+/).forEach(desc => {
+            const limpo = desc.trim();
+            const norm = normalizarBusca(limpo);
+            if (norm.length >= 4) {
+              const atual = mapaFrases.get(norm);
+              if (atual) {
+                atual.freq++;
+              } else {
+                mapaFrases.set(norm, { original: limpo, norm, freq: 1 });
+              }
+            }
+          });
+        }
+      });
+
+      vocabularioFrases = Array.from(mapaFrases.values());
+    }
+
+    function distanciaLevenshtein(a, b) {
+      if (a === b) return 0;
+      const m = a.length;
+      const n = b.length;
+      if (m === 0) return n;
+      if (n === 0) return m;
+
+      const dp = Array.from({ length: m + 1 }, () => new Array(n + 1));
+      for (let i = 0; i <= m; i++) dp[i][0] = i;
+      for (let j = 0; j <= n; j++) dp[0][j] = j;
+
+      for (let i = 1; i <= m; i++) {
+        for (let j = 1; j <= n; j++) {
+          const custo = a[i - 1] === b[j - 1] ? 0 : 1;
+          dp[i][j] = Math.min(
+            dp[i - 1][j] + 1,
+            dp[i][j - 1] + 1,
+            dp[i - 1][j - 1] + custo
+          );
+        }
+      }
+      return dp[m][n];
+    }
+
+    function contarMatchesGlobais(termoNorm) {
+      if (!termoNorm) return 0;
+      let count = 0;
+      for (let i = 0; i < acervoCompleto.length; i++) {
+        if (acervoCompleto[i].indiceBusca.includes(termoNorm)) count++;
+      }
+      return count;
+    }
+
+    function sugerirCorrecaoBusca(queryRaw) {
+      const queryNorm = normalizarBusca(queryRaw);
+      if (!queryNorm || queryNorm.length < 4) return null;
+
+      // 1. Correção palavra por palavra baseada no vocabulário da planilha
+      const tokens = queryNorm.split(/\s+/);
+      let houveTroca = false;
+
+      const tokensCorrigidos = tokens.map(token => {
+        if (token.length < 4 || vocabularioPalavras.has(token)) return token;
+
+        const maxDist = token.length <= 5 ? 1 : (token.length <= 9 ? 2 : 3);
+        let melhorPalavra = token;
+        let menorDist = maxDist + 1;
+        let maiorFreq = -1;
+
+        vocabularioPalavras.forEach((freq, candidata) => {
+          if (Math.abs(candidata.length - token.length) > maxDist) return;
+          const dist = distanciaLevenshtein(token, candidata);
+          if (dist <= maxDist) {
+            if (dist < menorDist || (dist === menorDist && freq > maiorFreq)) {
+              menorDist = dist;
+              maiorFreq = freq;
+              melhorPalavra = candidata;
+            }
+          }
+        });
+
+        if (melhorPalavra !== token) houveTroca = true;
+        return melhorPalavra;
+      });
+
+      if (houveTroca) {
+        const fraseSugerida = tokensCorrigidos.join(' ');
+        const qtd = contarMatchesGlobais(fraseSugerida);
+        if (qtd > 0) {
+          return { sugestao: fraseSugerida, total: qtd };
+        }
+      }
+
+      // 2. Fallback: comparação direta com descritores de assunto da planilha
+      if (queryNorm.length <= 45) {
+        const maxDistFrase = Math.max(2, Math.floor(queryNorm.length * 0.25));
+        let melhorFrase = null;
+        let menorDistFrase = maxDistFrase + 1;
+        let maiorFreqFrase = -1;
+
+        for (let i = 0; i < vocabularioFrases.length; i++) {
+          const item = vocabularioFrases[i];
+          if (Math.abs(item.norm.length - queryNorm.length) > maxDistFrase) continue;
+          const dist = distanciaLevenshtein(queryNorm, item.norm);
+          if (dist > 0 && dist <= maxDistFrase) {
+            if (dist < menorDistFrase || (dist === menorDistFrase && item.freq > maiorFreqFrase)) {
+              menorDistFrase = dist;
+              maiorFreqFrase = item.freq;
+              melhorFrase = item.original;
+            }
+          }
+        }
+
+        if (melhorFrase) {
+          const qtd = contarMatchesGlobais(normalizarBusca(melhorFrase));
+          if (qtd > 0) {
+            return { sugestao: melhorFrase, total: qtd };
+          }
+        }
+      }
+
+      return null;
+    }
+
     async function carregarAcervo() {
       const iconSync = document.getElementById('iconSync');
       const statusEl = document.getElementById('statusCarregamento');
@@ -234,6 +396,7 @@
           }
           if (!titulo && !notacao) return;
 
+          const corNormalizada = cor || 'VERDE';
           lista.push({
             id: `obra_${index + 2}`,
             notacao,
@@ -242,13 +405,15 @@
             titulo: titulo || 'Sem Título',
             autor: autor || 'Autor não informado',
             assunto,
-            cor: cor || 'VERDE',
+            cor: corNormalizada,
             capa,
-            dataRegistro
+            dataRegistro,
+            indiceBusca: normalizarBusca(`${notacao} ${titulo} ${autor} ${assunto} ${corNormalizada}`)
           });
         });
 
         acervoCompleto = lista;
+        construirIndiceVocabulario(lista);
         renderizarFiltrosCor();
         aplicarFiltros();
       } catch (err) {
@@ -307,19 +472,52 @@
       aplicarFiltros();
     }
 
-    function normalizarBusca(str) {
-      return String(str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    function limparCampoBusca() {
+      const input = document.getElementById('campoBusca');
+      input.value = '';
+      aplicarFiltros();
+      input.focus();
+    }
+
+    function aplicarSugestaoBusca(termoSugerido) {
+      const input = document.getElementById('campoBusca');
+      input.value = termoSugerido;
+      corFiltroAtiva = 'TODAS';
+      renderizarFiltrosCor();
+      aplicarFiltros();
+    }
+
+    function filtrarPorAssuntoTag(el) {
+      const assunto = decodeURIComponent(el.getAttribute('data-assunto') || '');
+      if (!assunto) return;
+
+      fecharModalDetalhes();
+      corFiltroAtiva = 'TODAS';
+      renderizarFiltrosCor();
+
+      const input = document.getElementById('campoBusca');
+      input.value = assunto;
+      aplicarFiltros();
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     function aplicarFiltros() {
-      const termo = normalizarBusca(document.getElementById('campoBusca').value.trim());
+      const rawBusca = document.getElementById('campoBusca').value.trim();
+      const termo = normalizarBusca(rawBusca);
       const ordenacao = document.getElementById('selectOrdenacao').value;
+      const btnLimpar = document.getElementById('btnLimparBusca');
+
+      if (rawBusca.length > 0) {
+        btnLimpar.classList.remove('hidden');
+      } else {
+        btnLimpar.classList.add('hidden');
+      }
 
       let filtrados = acervoCompleto.filter(item => {
         if (corFiltroAtiva !== 'TODAS' && item.cor !== corFiltroAtiva) return false;
         if (!termo) return true;
-        const alvo = normalizarBusca(`${item.notacao} ${item.titulo} ${item.autor} ${item.assunto} ${item.cor}`);
-        return alvo.includes(termo);
+        return item.indiceBusca.includes(termo);
       });
 
       if (ordenacao === 'RECENTES') {
@@ -334,7 +532,57 @@
 
       acervoFiltrado = filtrados;
       document.getElementById('resumoContagem').innerText = `Exibindo ${filtrados.length} de ${acervoCompleto.length} obras`;
+
+      atualizarBannerSugestao(rawBusca, termo, filtrados.length);
       renderizarGrid();
+    }
+
+    function atualizarBannerSugestao(rawBusca, termoNorm, qtdEncontrada) {
+      const banner = document.getElementById('bannerSugestao');
+
+      if (!termoNorm || qtdEncontrada > 0) {
+        banner.classList.add('hidden');
+        banner.innerHTML = '';
+        return;
+      }
+
+      // Caso A: O termo exato existe, mas em outra cor de lombada
+      const qtdEmTodasCores = corFiltroAtiva !== 'TODAS' ? contarMatchesGlobais(termoNorm) : 0;
+      if (qtdEmTodasCores > 0) {
+        banner.innerHTML = `
+          <div class="flex items-center gap-2 text-amber-950">
+            <span>Nenhuma obra encontrada na cor <strong>${corFiltroAtiva}</strong>, mas há <strong>${qtdEmTodasCores} obra(s)</strong> em outras cores.</span>
+          </div>
+          <button type="button" onclick="filtrarPorCor('TODAS')" class="px-3 py-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-slate-950 font-black transition">
+            Mostrar em Todas as Cores
+          </button>
+        `;
+        banner.classList.remove('hidden');
+        return;
+      }
+
+      // Caso B: Possível erro de digitação -> "Você quis dizer..."
+      const correcao = sugerirCorrecaoBusca(rawBusca);
+      if (correcao) {
+        const safeTexto = correcao.sugestao.replace(/[<>&"']/g, '');
+        banner.innerHTML = `
+          <div class="flex flex-wrap items-center gap-1.5 text-amber-950">
+            <span class="font-semibold">Você quis dizer:</span>
+            <button type="button" onclick="aplicarSugestaoBusca('${safeTexto}')" class="font-black italic underline decoration-2 decoration-[#800020] text-[#800020] hover:text-[#5c0017] text-sm cursor-pointer">
+              ${safeTexto}
+            </button>
+            <span class="text-[11px] text-amber-800 font-medium">(${correcao.total} ${correcao.total === 1 ? 'obra encontrada' : 'obras encontradas'})</span>
+          </div>
+          <button type="button" onclick="aplicarSugestaoBusca('${safeTexto}')" class="px-3 py-1.5 rounded-xl bg-[#800020] hover:bg-[#5c0017] text-white font-bold transition">
+            Buscar sugestão →
+          </button>
+        `;
+        banner.classList.remove('hidden');
+        return;
+      }
+
+      banner.classList.add('hidden');
+      banner.innerHTML = '';
     }
 
     function renderizarGrid() {
@@ -427,13 +675,35 @@
 
       document.getElementById('detalheTitulo').innerText = obra.titulo;
       document.getElementById('detalheAutor').innerText = obra.autor;
-      document.getElementById('detalheAssunto').innerText = obra.assunto || 'Não informado';
       document.getElementById('detalheData').innerText = obra.dataRegistro || 'Não registrada';
 
       const corBadge = document.getElementById('detalheCorBadge');
       corBadge.innerText = `${corInfo.chave} — ${corInfo.label}`;
       corBadge.style.backgroundColor = corInfo.badgeBg;
       corBadge.style.color = corInfo.badgeText;
+
+      // Renderiza cada assunto como tag clicável
+      const containerTags = document.getElementById('detalheAssuntoTags');
+      const tags = String(obra.assunto || '')
+        .split(/[,;]+/)
+        .map(t => t.trim())
+        .filter(Boolean);
+
+      if (tags.length > 0) {
+        containerTags.innerHTML = tags.map(tag => {
+          const safeLabel = tag.replace(/[<>&"']/g, '');
+          const encoded = encodeURIComponent(tag);
+          return `
+            <button type="button" data-assunto="${encoded}" onclick="filtrarPorAssuntoTag(this)"
+              class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-white hover:bg-[#800020] text-slate-700 hover:text-white border border-slate-300 hover:border-[#800020] text-[11px] font-bold shadow-2xs transition cursor-pointer">
+              <span>#</span>
+              <span>${safeLabel}</span>
+            </button>
+          `;
+        }).join('');
+      } else {
+        containerTags.innerHTML = '<span class="text-slate-500 italic">Nenhum assunto cadastrado</span>';
+      }
 
       document.getElementById('modalDetalhes').classList.remove('hidden');
     }
