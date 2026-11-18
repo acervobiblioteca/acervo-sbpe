@@ -3,106 +3,21 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Acervo SBPE — Catálogo & Etiquetas</title>
+  <title>Acervo SBPE — Consulta ao Catálogo</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    :root {
-      --sbpe-primary: #800020;
-      --sbpe-dark: #5c0017;
-    }
-
     .sbpe-header {
       background: linear-gradient(135deg, #800020 0%, #5c0017 100%);
-    }
-
-    /* Etiqueta padrão SBPE: 6,8 cm x 3,8 cm */
-    .etiqueta-sbpe {
-      width: 6.8cm;
-      height: 3.8cm;
-      border: 1px dashed #94a3b8;
-      border-radius: 4px;
-      background: #ffffff;
-      display: flex;
-      overflow: hidden;
-      box-sizing: border-box;
-      page-break-inside: avoid;
-      break-inside: avoid;
-    }
-
-    .etiqueta-faixa {
-      width: 1.15cm;
-      height: 100%;
-      flex-shrink: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      writing-mode: vertical-rl;
-      transform: rotate(180deg);
-      font-size: 7pt;
-      font-weight: 800;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 2px;
-      text-align: center;
-    }
-
-    .etiqueta-corpo {
-      flex: 1;
-      padding: 0.22cm 0.3cm;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
-      text-align: center;
-      font-family: Arial, Helvetica, sans-serif;
-      color: #0f172a;
-    }
-
-    @media print {
-      @page {
-        size: A4 portrait;
-        margin: 10mm;
-      }
-
-      body {
-        background: #ffffff !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        -webkit-print-color-adjust: exact !important;
-        print-color-adjust: exact !important;
-      }
-
-      .no-print {
-        display: none !important;
-      }
-
-      #areaImpressaoA4 {
-        display: block !important;
-        position: static !important;
-        background: #ffffff !important;
-        padding: 0 !important;
-        margin: 0 !important;
-      }
-
-      #gridEtiquetasPrint {
-        display: grid !important;
-        grid-template-columns: repeat(2, 6.8cm) !important;
-        gap: 0.45cm !important;
-        justify-content: center !important;
-      }
-
-      .etiqueta-sbpe {
-        border: 1px solid #cbd5e1 !important;
-      }
     }
   </style>
 </head>
 <body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col antialiased">
 
   <!-- CABEÇALHO PRINCIPAL -->
-  <header class="sbpe-header text-white shadow-lg sticky top-0 z-30 no-print">
-    <div class="max-w-7xl mx-auto px-4 py-3.5 flex flex-wrap items-center justify-between gap-3">
+  <header class="sbpe-header text-white shadow-lg sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 py-3.5 flex items-center justify-between gap-3">
       <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center font-black text-sm tracking-wider border border-white/20">
+        <div class="w-10 h-10 rounded-xl bg-white/15 backdrop-blur flex items-center justify-center font-black text-sm tracking-wider border border-white/20 flex-shrink-0">
           SBPE
         </div>
         <div>
@@ -111,33 +26,26 @@
         </div>
       </div>
 
-      <div class="flex items-center gap-2">
-        <button type="button" onclick="carregarAcervo()" title="Sincronizar com a Planilha" class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition flex items-center gap-1.5">
-          <svg id="iconSync" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-          <span class="hidden sm:inline">Atualizar</span>
-        </button>
-
-        <button type="button" onclick="abrirModalImpressao()" id="btnAbrirImpressao" class="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-black shadow transition flex items-center gap-1.5">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-          <span>Etiquetas (<span id="contadorSelecionados">0</span>)</span>
-        </button>
-      </div>
+      <button type="button" onclick="carregarAcervo()" title="Sincronizar com a Planilha" class="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold border border-white/20 transition flex items-center gap-1.5 flex-shrink-0">
+        <svg id="iconSync" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+        <span class="hidden sm:inline">Atualizar Acervo</span>
+      </button>
     </div>
   </header>
 
-  <!-- BARRA DE BUSCA, FILTROS E SELEÇÃO RÁPIDA -->
-  <main class="max-w-7xl mx-auto w-full px-4 py-5 flex-1 space-y-4 no-print">
+  <!-- BARRA DE BUSCA E FILTROS -->
+  <main class="max-w-7xl mx-auto w-full px-4 py-5 flex-1 space-y-4">
 
     <section class="bg-white p-4 rounded-2xl shadow-sm border border-slate-200 space-y-3">
       <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
         <!-- Campo de Busca -->
-        <div class="md:col-span-6 relative">
+        <div class="md:col-span-8 relative">
           <svg class="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
           <input type="text" id="campoBusca" oninput="aplicarFiltros()" placeholder="Buscar por título, autor, notação (ex: F ORW) ou assunto..." class="w-full pl-10 pr-4 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-[#800020] focus:border-transparent">
         </div>
 
         <!-- Ordenação -->
-        <div class="md:col-span-3">
+        <div class="md:col-span-4">
           <select id="selectOrdenacao" onchange="aplicarFiltros()" class="w-full px-3 py-2.5 text-xs font-semibold rounded-xl border border-slate-300 bg-white focus:outline-none focus:ring-2 focus:ring-[#800020]">
             <option value="RECENTES">Mais Recentes (Últimos Catalogados)</option>
             <option value="TITULO_ASC">Título (A → Z)</option>
@@ -145,20 +53,10 @@
             <option value="NOTACAO_ASC">Notação (Crescente)</option>
           </select>
         </div>
-
-        <!-- Ações em Lote para Etiquetas -->
-        <div class="md:col-span-3 flex gap-2">
-          <button type="button" onclick="selecionarFiltrados()" class="flex-1 px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 text-[11px] font-bold transition">
-            Selecionar Filtrados
-          </button>
-          <button type="button" onclick="limparSelecao()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-rose-100 hover:text-rose-800 text-slate-600 text-[11px] font-bold transition">
-            Limpar
-          </button>
-        </div>
       </div>
 
       <!-- Pílulas de Filtro por Cor da Lombada (Matriz SBPE) -->
-      <div class="pt-1 border-t border-slate-100">
+      <div class="pt-2 border-t border-slate-100">
         <div class="flex items-center justify-between mb-2">
           <span class="text-[11px] font-extrabold text-slate-600 uppercase tracking-wider">Filtrar por Cor da Lombada (Matriz Temática SBPE):</span>
           <span id="resumoContagem" class="text-[11px] font-bold text-slate-500">Carregando acervo...</span>
@@ -179,12 +77,12 @@
     <!-- ESTADO VAZIO -->
     <div id="estadoVazio" class="hidden bg-white p-10 rounded-2xl border border-slate-200 text-center space-y-2">
       <p class="text-sm font-bold text-slate-700">Nenhuma obra encontrada com esses filtros.</p>
-      <p class="text-xs text-slate-500">Tente limpar a busca ou selecionar "Todas as Cores".</p>
+      <p class="text-xs text-slate-500">Tente limpar a busca ou selecionar "Todas".</p>
     </div>
   </main>
 
-  <!-- MODAL DETALHES DA OBRA -->
-  <div id="modalDetalhes" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-40 flex items-center justify-center p-4 no-print" onclick="if(event.target===this) fecharModalDetalhes()">
+  <!-- MODAL FICHA DA OBRA -->
+  <div id="modalDetalhes" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-40 flex items-center justify-center p-4" onclick="if(event.target===this) fecharModalDetalhes()">
     <div class="bg-white rounded-2xl max-w-lg w-full overflow-hidden shadow-2xl border border-slate-200">
       <div id="detalheFaixaTopo" class="h-3 w-full"></div>
       <div class="p-5 space-y-4">
@@ -206,11 +104,11 @@
 
         <div class="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-2 text-xs">
           <div>
-            <span class="font-bold text-slate-700">Cor da Lombada: </span>
+            <span class="font-bold text-slate-700">Cor na Estante: </span>
             <span id="detalheCorBadge" class="inline-block font-bold px-2 py-0.5 rounded-full text-[11px]"></span>
           </div>
           <div>
-            <span class="font-bold text-slate-700">Assuntos (VCBN): </span>
+            <span class="font-bold text-slate-700">Assuntos: </span>
             <span id="detalheAssunto" class="text-slate-600"></span>
           </div>
           <div>
@@ -219,35 +117,9 @@
           </div>
         </div>
 
-        <div class="flex justify-end gap-2 pt-1">
-          <button type="button" id="btnToggleSelecaoModal" class="px-4 py-2 rounded-xl text-xs font-bold transition"></button>
-          <button type="button" onclick="fecharModalDetalhes()" class="px-4 py-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-bold">Fechar</button>
+        <div class="flex justify-end pt-1">
+          <button type="button" onclick="fecharModalDetalhes()" class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold">Fechar Ficha</button>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- MODAL PRÉ-VISUALIZAÇÃO E IMPRESSÃO DE ETIQUETAS (6,8 cm x 3,8 cm) -->
-  <div id="areaImpressaoA4" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 overflow-y-auto p-4 sm:p-6">
-    <div class="max-w-4xl mx-auto bg-white rounded-2xl shadow-2xl border border-slate-200 overflow-hidden">
-      <div class="p-4 bg-slate-900 text-white flex flex-wrap items-center justify-between gap-3 no-print">
-        <div>
-          <h3 class="text-sm font-black">Impressão de Etiquetas de Lombada — SBPE (6,8 cm × 3,8 cm)</h3>
-          <p class="text-[11px] text-slate-300">Configure a impressão em papel A4, escala 100% (Tamanho Real) e gráficos de segundo plano ativados.</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="window.print()" class="px-4 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-xs font-black shadow transition flex items-center gap-1.5">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
-            <span>Imprimir Agora</span>
-          </button>
-          <button type="button" onclick="fecharModalImpressao()" class="px-3 py-2 rounded-xl bg-slate-700 hover:bg-slate-600 text-white text-xs font-bold">
-            Voltar
-          </button>
-        </div>
-      </div>
-
-      <div class="p-6 bg-slate-100">
-        <div id="gridEtiquetasPrint" class="grid grid-cols-1 sm:grid-cols-2 gap-4 justify-items-center"></div>
       </div>
     </div>
   </div>
@@ -256,91 +128,41 @@
     const SPREADSHEET_ID = '1qp9NMs2qTPEjd9ks5TjG3Gq27A6zWnqfhVZM0kJB6gw';
     const GVIZ_URL = `https://docs.google.com/spreadsheets/d/${SPREADSHEET_ID}/gviz/tq?tqx=out:json`;
 
-    // Matriz Temática Autoritativa SBPE (13 cores oficiais + opções extras do Modo Avançado)
     const COLOR_MAP = {
-      'ROXO': {
-        label: 'ECA / Direitos da Criança',
-        bg: '#7e22ce', text: '#ffffff', badgeBg: '#f3e8ff', badgeText: '#6b21a8', border: '#d8b4fe'
-      },
-      'VERDE': {
-        label: 'Serviço Social / Acolhimento',
-        bg: '#15803d', text: '#ffffff', badgeBg: '#dcfce7', badgeText: '#166534', border: '#86efac'
-      },
-      'AZUL': {
-        label: 'Direito Geral / Justiça',
-        bg: '#1d4ed8', text: '#ffffff', badgeBg: '#dbeafe', badgeText: '#1e40af', border: '#93c5fd'
-      },
-      'AMARELO': {
-        label: 'Educação / Pedagogia',
-        bg: '#facc15', text: '#1e293b', badgeBg: '#fef9c3', badgeText: '#854d0e', border: '#fde047'
-      },
-      'VERMELHO': {
-        label: 'Sociologia / Política / Gênero',
-        bg: '#dc2626', text: '#ffffff', badgeBg: '#fee2e2', badgeText: '#991b1b', border: '#fca5a5'
-      },
-      'LARANJA': {
-        label: 'Criminologia / Enfrent. Violência',
-        bg: '#ea580c', text: '#ffffff', badgeBg: '#ffedd5', badgeText: '#9a3412', border: '#fdba74'
-      },
-      'ROSA': {
-        label: 'Infantojuvenil / Pediatria',
-        bg: '#ec4899', text: '#ffffff', badgeBg: '#fce7f3', badgeText: '#9d174d', border: '#f9a8d4'
-      },
-      'VERDE CLARO': {
-        label: 'Literatura Adulta / Poesia',
-        bg: '#4ade80', text: '#064e3b', badgeBg: '#dcfce7', badgeText: '#15803d', border: '#86efac'
-      },
-      'MARROM': {
-        label: 'Coleção Folha / História / Biografia',
-        bg: '#78350f', text: '#ffffff', badgeBg: '#fef3c7', badgeText: '#78350f', border: '#fcd34d'
-      },
-      'PRETO': {
-        label: 'National Geographic / Atlas',
-        bg: '#0f172a', text: '#ffffff', badgeBg: '#e2e8f0', badgeText: '#0f172a', border: '#cbd5e1'
-      },
-      'BEGE': {
-        label: 'Meio Ambiente / Ecologia',
-        bg: '#d6c7b2', text: '#292524', badgeBg: '#f5f5f4', badgeText: '#44403c', border: '#d6d3d1'
-      },
-      'AZUL CLARO': {
-        label: 'Psicologia / Saúde Mental',
-        bg: '#38bdf8', text: '#0c4a6e', badgeBg: '#e0f2fe', badgeText: '#0369a1', border: '#7dd3fc'
-      },
-      'CINZA': {
-        label: 'Artes / Museus / Comunicação',
-        bg: '#64748b', text: '#ffffff', badgeBg: '#f1f5f9', badgeText: '#334155', border: '#cbd5e1'
-      },
-      'VINHO': {
-        label: 'Especial / Acervo Histórico',
-        bg: '#800020', text: '#ffffff', badgeBg: '#ffe4e6', badgeText: '#881337', border: '#fda4af'
-      },
-      'BRANCO': {
-        label: 'Geral / Referência',
-        bg: '#f8fafc', text: '#1e293b', badgeBg: '#f8fafc', badgeText: '#334155', border: '#cbd5e1'
-      },
+      'ROXO': { label: 'ECA / Direitos da Criança', bg: '#7e22ce', badgeBg: '#f3e8ff', badgeText: '#6b21a8', border: '#d8b4fe' },
+      'VERDE': { label: 'Serviço Social / Acolhimento', bg: '#15803d', badgeBg: '#dcfce7', badgeText: '#166534', border: '#86efac' },
+      'AZUL': { label: 'Direito Geral / Justiça', bg: '#1d4ed8', badgeBg: '#dbeafe', badgeText: '#1e40af', border: '#93c5fd' },
+      'AMARELO': { label: 'Educação / Pedagogia', bg: '#facc15', badgeBg: '#fef9c3', badgeText: '#854d0e', border: '#fde047' },
+      'VERMELHO': { label: 'Sociologia / Política / Gênero', bg: '#dc2626', badgeBg: '#fee2e2', badgeText: '#991b1b', border: '#fca5a5' },
+      'LARANJA': { label: 'Criminologia / Enfrent. Violência', bg: '#ea580c', badgeBg: '#ffedd5', badgeText: '#9a3412', border: '#fdba74' },
+      'ROSA': { label: 'Infantojuvenil / Pediatria', bg: '#ec4899', badgeBg: '#fce7f3', badgeText: '#9d174d', border: '#f9a8d4' },
+      'VERDE CLARO': { label: 'Literatura Adulta / Poesia', bg: '#4ade80', badgeBg: '#dcfce7', badgeText: '#15803d', border: '#86efac' },
+      'MARROM': { label: 'Coleção Folha / História / Biografia', bg: '#78350f', badgeBg: '#fef3c7', badgeText: '#78350f', border: '#fcd34d' },
+      'PRETO': { label: 'National Geographic / Atlas', bg: '#0f172a', badgeBg: '#e2e8f0', badgeText: '#0f172a', border: '#cbd5e1' },
+      'BEGE': { label: 'Meio Ambiente / Ecologia', bg: '#d6c7b2', badgeBg: '#f5f5f4', badgeText: '#44403c', border: '#d6d3d1' },
+      'AZUL CLARO': { label: 'Psicologia / Saúde Mental', bg: '#38bdf8', badgeBg: '#e0f2fe', badgeText: '#0369a1', border: '#7dd3fc' },
+      'CINZA': { label: 'Artes / Museus / Comunicação', bg: '#64748b', badgeBg: '#f1f5f9', badgeText: '#334155', border: '#cbd5e1' },
+      'VINHO': { label: 'Especial / Acervo Histórico', bg: '#800020', badgeBg: '#ffe4e6', badgeText: '#881337', border: '#fda4af' },
+      'BRANCO': { label: 'Geral / Referência', bg: '#f8fafc', badgeBg: '#f8fafc', badgeText: '#334155', border: '#cbd5e1' },
       'MULTICOLORIDO': {
         label: 'Obras Gerais / Diversos',
         bg: 'linear-gradient(180deg, #dc2626 0%, #eab308 33%, #16a34a 66%, #2563eb 100%)',
-        text: '#ffffff', badgeBg: '#f1f5f9', badgeText: '#1e293b', border: '#cbd5e1'
+        badgeBg: '#f1f5f9', badgeText: '#1e293b', border: '#cbd5e1'
       }
     };
 
     const FALLBACK_COR = {
       label: 'Classificação Geral',
-      bg: '#94a3b8', text: '#ffffff', badgeBg: '#f1f5f9', badgeText: '#334155', border: '#cbd5e1'
+      bg: '#94a3b8', badgeBg: '#f1f5f9', badgeText: '#334155', border: '#cbd5e1'
     };
 
     let acervoCompleto = [];
     let acervoFiltrado = [];
     let corFiltroAtiva = 'TODAS';
-    let selecionadosIds = new Set();
 
     function obterInfoCor(corRaw) {
       const chave = String(corRaw || '').trim().toUpperCase();
-      return {
-        chave: chave || 'NÃO DEFINIDA',
-        ...(COLOR_MAP[chave] || FALLBACK_COR)
-      };
+      return { chave: chave || 'NÃO DEFINIDA', ...(COLOR_MAP[chave] || FALLBACK_COR) };
     }
 
     function limparCampoUnico(valor, tipo) {
@@ -355,9 +177,7 @@
       const u = String(urlRaw || '').trim();
       if (!u) return '';
       const matchId = u.match(/(?:\/d\/|id=)([a-zA-Z0-9_-]{20,})/);
-      if (matchId && matchId[1]) {
-        return `https://lh3.googleusercontent.com/d/${matchId[1]}`;
-      }
+      if (matchId && matchId[1]) return `https://lh3.googleusercontent.com/d/${matchId[1]}`;
       return u;
     }
 
@@ -409,7 +229,6 @@
           const capa = normalizarUrlCapa(extrairCelula(row, 7));
           const dataRegistro = extrairCelula(row, 8);
 
-          // Ignora linha de cabeçalho caso venha como dado
           if (index === 0 && (titulo.toLowerCase() === 'título' || titulo.toLowerCase() === 'titulo' || notacao.toLowerCase().includes('notação'))) {
             return;
           }
@@ -417,7 +236,6 @@
 
           lista.push({
             id: `obra_${index + 2}`,
-            linhaPlanilha: index + 2,
             notacao,
             exemplar,
             volume,
@@ -490,10 +308,7 @@
     }
 
     function normalizarBusca(str) {
-      return String(str || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '');
+      return String(str || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     }
 
     function aplicarFiltros() {
@@ -503,7 +318,6 @@
       let filtrados = acervoCompleto.filter(item => {
         if (corFiltroAtiva !== 'TODAS' && item.cor !== corFiltroAtiva) return false;
         if (!termo) return true;
-
         const alvo = normalizarBusca(`${item.notacao} ${item.titulo} ${item.autor} ${item.assunto} ${item.cor}`);
         return alvo.includes(termo);
       });
@@ -536,38 +350,29 @@
       vazio.classList.add('hidden');
       grid.innerHTML = acervoFiltrado.map(obra => {
         const corInfo = obterInfoCor(obra.cor);
-        const selecionado = selecionadosIds.has(obra.id);
         const placeholder = gerarSvgCapaPlaceholder(obra.notacao, corInfo.bg);
         const imgSrc = obra.capa || placeholder;
         const stripStyle = corInfo.bg.startsWith('linear-gradient') ? `background: ${corInfo.bg};` : `background-color: ${corInfo.bg};`;
 
         return `
-          <article class="bg-white rounded-2xl border ${selecionado ? 'border-[#800020] ring-2 ring-[#800020]/20' : 'border-slate-200'} shadow-sm hover:shadow-md transition overflow-hidden flex flex-col justify-between">
+          <article onclick="abrirModalDetalhes('${obra.id}')" class="bg-white rounded-2xl border border-slate-200 shadow-sm hover:shadow-md hover:border-slate-300 transition overflow-hidden flex flex-col justify-between cursor-pointer group">
             <div>
-              <!-- Faixa Superior da Cor Temática -->
               <div class="h-2 w-full" style="${stripStyle}"></div>
-
               <div class="p-3.5 flex gap-3">
-                <!-- Capa -->
-                <div class="w-16 h-24 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0 cursor-pointer" onclick="abrirModalDetalhes('${obra.id}')">
-                  <img src="${imgSrc}" onerror="this.onerror=null;this.src='${placeholder}'" alt="${obra.titulo}" loading="lazy" class="w-full h-full object-cover">
+                <div class="w-16 h-24 rounded-lg overflow-hidden border border-slate-200 bg-slate-100 flex-shrink-0">
+                  <img src="${imgSrc}" onerror="this.onerror=null;this.src='${placeholder}'" alt="${obra.titulo}" loading="lazy" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
                 </div>
 
-                <!-- Metadados Principais -->
                 <div class="flex-1 min-w-0 space-y-1">
-                  <div class="flex items-start justify-between gap-1">
-                    <span class="font-mono text-[11px] font-black px-1.5 py-0.5 rounded bg-slate-900 text-white truncate">
+                  <div class="flex flex-wrap items-center gap-1">
+                    <span class="font-mono text-[11px] font-black px-1.5 py-0.5 rounded bg-slate-900 text-white">
                       ${obra.notacao || 'S/N'}
                     </span>
-                    <input type="checkbox" ${selecionado ? 'checked' : ''} onchange="alternarSelecao('${obra.id}')" title="Selecionar para etiqueta" class="w-4 h-4 accent-[#800020] cursor-pointer rounded">
+                    ${obra.exemplar ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-amber-100 text-amber-900">${obra.exemplar}</span>` : ''}
+                    ${obra.volume ? `<span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-indigo-100 text-indigo-900">${obra.volume}</span>` : ''}
                   </div>
 
-                  <div class="flex flex-wrap gap-1">
-                    ${obra.exemplar ? `<span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-amber-100 text-amber-900">${obra.exemplar}</span>` : ''}
-                    ${obra.volume ? `<span class="text-[10px] font-bold px-1.5 py-0.2 rounded bg-indigo-100 text-indigo-900">${obra.volume}</span>` : ''}
-                  </div>
-
-                  <h2 onclick="abrirModalDetalhes('${obra.id}')" class="text-xs font-extrabold text-slate-900 line-clamp-2 cursor-pointer hover:text-[#800020] leading-snug">
+                  <h2 class="text-xs font-extrabold text-slate-900 line-clamp-2 group-hover:text-[#800020] leading-snug">
                     ${obra.titulo}
                   </h2>
 
@@ -576,44 +381,17 @@
               </div>
             </div>
 
-            <!-- Rodapé do Card -->
             <div class="px-3.5 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between gap-2">
               <span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full border truncate" style="background-color: ${corInfo.badgeBg}; color: ${corInfo.badgeText}; border-color: ${corInfo.border};" title="${corInfo.label}">
                 ${corInfo.chave}
               </span>
-              <button type="button" onclick="abrirModalDetalhes('${obra.id}')" class="text-[11px] font-bold text-slate-500 hover:text-[#800020] flex-shrink-0">
-                Ficha →
-              </button>
+              <span class="text-[11px] font-bold text-slate-500 group-hover:text-[#800020] flex-shrink-0">
+                Ver ficha →
+              </span>
             </div>
           </article>
         `;
       }).join('');
-    }
-
-    function alternarSelecao(id) {
-      if (selecionadosIds.has(id)) {
-        selecionadosIds.delete(id);
-      } else {
-        selecionadosIds.add(id);
-      }
-      atualizarContadorSelecao();
-      renderizarGrid();
-    }
-
-    function selecionarFiltrados() {
-      acervoFiltrado.forEach(item => selecionadosIds.add(item.id));
-      atualizarContadorSelecao();
-      renderizarGrid();
-    }
-
-    function limparSelecao() {
-      selecionadosIds.clear();
-      atualizarContadorSelecao();
-      renderizarGrid();
-    }
-
-    function atualizarContadorSelecao() {
-      document.getElementById('contadorSelecionados').innerText = selecionadosIds.size;
     }
 
     function abrirModalDetalhes(id) {
@@ -623,8 +401,7 @@
       const corInfo = obterInfoCor(obra.cor);
       const placeholder = gerarSvgCapaPlaceholder(obra.notacao, corInfo.bg);
 
-      const topo = document.getElementById('detalheFaixaTopo');
-      topo.style.background = corInfo.bg;
+      document.getElementById('detalheFaixaTopo').style.background = corInfo.bg;
 
       const img = document.getElementById('detalheCapa');
       img.src = obra.capa || placeholder;
@@ -658,83 +435,11 @@
       corBadge.style.backgroundColor = corInfo.badgeBg;
       corBadge.style.color = corInfo.badgeText;
 
-      const btnSel = document.getElementById('btnToggleSelecaoModal');
-      const jaSel = selecionadosIds.has(obra.id);
-      btnSel.innerText = jaSel ? '✓ Selecionado para Etiqueta' : '+ Selecionar para Etiqueta';
-      btnSel.className = jaSel
-        ? 'px-4 py-2 rounded-xl bg-emerald-600 text-white text-xs font-bold'
-        : 'px-4 py-2 rounded-xl bg-[#800020] hover:bg-[#5c0017] text-white text-xs font-bold';
-      btnSel.onclick = () => {
-        alternarSelecao(obra.id);
-        abrirModalDetalhes(obra.id);
-      };
-
       document.getElementById('modalDetalhes').classList.remove('hidden');
     }
 
     function fecharModalDetalhes() {
       document.getElementById('modalDetalhes').classList.add('hidden');
-    }
-
-    function formatarNotacaoEmLinhas(notacaoRaw) {
-      const limpo = String(notacaoRaw || '').trim();
-      if (!limpo) return ['S/N'];
-      // Divide entre Classificação/Prefixo e Cutter (ex: "F ORW" -> ["F", "ORW"] ou "341.567 EST" -> ["341.567", "EST"])
-      const partes = limpo.split(/\s+/);
-      if (partes.length >= 2) {
-        return [partes[0], partes.slice(1).join(' ')];
-      }
-      return [limpo];
-    }
-
-    function abrirModalImpressao() {
-      const obrasParaImprimir = selecionadosIds.size > 0
-        ? acervoCompleto.filter(o => selecionadosIds.has(o.id))
-        : acervoFiltrado.slice(0, 14); // Se nada selecionado, pré-visualiza até 1 folha A4 (14 etiquetas) dos filtrados
-
-      if (obrasParaImprimir.length === 0) {
-        alert('Nenhuma obra disponível para gerar etiquetas.');
-        return;
-      }
-
-      const gridPrint = document.getElementById('gridEtiquetasPrint');
-      gridPrint.innerHTML = obrasParaImprimir.map(obra => {
-        const corInfo = obterInfoCor(obra.cor);
-        const linhasNotacao = formatarNotacaoEmLinhas(obra.notacao);
-        const faixaBg = corInfo.bg.startsWith('linear-gradient') ? `background: ${corInfo.bg};` : `background-color: ${corInfo.bg};`;
-
-        const extras = [obra.volume, obra.exemplar].filter(Boolean).join(' • ');
-
-        return `
-          <div class="etiqueta-sbpe">
-            <div class="etiqueta-faixa" style="${faixaBg} color: ${corInfo.text};">
-              ${corInfo.chave}
-            </div>
-            <div class="etiqueta-corpo">
-              <div style="font-size: 6.5pt; font-weight: 700; letter-spacing: 0.08em; color: #64748b; text-transform: uppercase;">
-                SBPE • CAIXA ESTANTE
-              </div>
-
-              <div style="margin: auto 0; line-height: 1.15;">
-                ${linhasNotacao.map(linha => `
-                  <div style="font-size: 13pt; font-weight: 900; color: #0f172a;">${linha}</div>
-                `).join('')}
-                ${extras ? `<div style="font-size: 8.5pt; font-weight: 800; color: #334155; margin-top: 2px;">${extras}</div>` : ''}
-              </div>
-
-              <div style="font-size: 6pt; color: #475569; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; border-top: 1px solid #e2e8f0; padding-top: 2px;">
-                ${obra.titulo}
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
-
-      document.getElementById('areaImpressaoA4').classList.remove('hidden');
-    }
-
-    function fecharModalImpressao() {
-      document.getElementById('areaImpressaoA4').classList.add('hidden');
     }
 
     document.addEventListener('DOMContentLoaded', carregarAcervo);
